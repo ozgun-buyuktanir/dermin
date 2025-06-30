@@ -1,27 +1,27 @@
 import { useState } from 'react'
 import { Plus, Clock, Camera, TrendingUp, Archive } from 'lucide-react'
 
-const AnalysisHistory = ({ analyses, onNewAnalysis, activeAnalysisId, onSelectAnalysis }) => {
+const AnalysisHistory = ({ analyses, onNewAnalysis, activeAnalysisId, onSelectAnalysis, isOpen = true }) => {
     return (
-        <div className="w-64 bg-white/60 backdrop-blur-sm border-r border-gray-200/50 flex flex-col">
-            {/* Header */}
-            <div className="p-4 border-b border-gray-200/50">
-                <button
-                    onClick={onNewAnalysis}
-                    className="w-full flex items-center gap-2 bg-gray-800 text-white px-3 py-2.5 rounded-lg hover:bg-gray-900 transition-all duration-200 font-medium text-sm"
-                >
-                    <Plus className="w-4 h-4" />
-                    New Analysis
-                </button>
-            </div>
-
+        <div className={`bg-white/60 backdrop-blur-sm border-r border-gray-200/50 flex flex-col transition-all duration-300 ${
+            isOpen ? 'w-64' : 'w-0 overflow-hidden'
+        }`}>
             {/* Analysis History */}
             <div className="flex-1 overflow-y-auto">
                 <div className="p-3">
-                    <h3 className="text-xs font-medium text-gray-700 mb-3 flex items-center gap-2">
-                        <Clock className="w-3 h-3" />
-                        Recent Analyses
-                    </h3>
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-xs font-medium text-gray-700 flex items-center gap-2">
+                            <Clock className="w-3 h-3" />
+                            Recent Analyses
+                        </h3>
+                        <button
+                            onClick={onNewAnalysis}
+                            className="flex items-center justify-center w-6 h-6 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-all duration-200"
+                            title="New Analysis"
+                        >
+                            <Plus className="w-4 h-4" />
+                        </button>
+                    </div>
 
                     {analyses.length === 0 ? (
                         <div className="text-center py-8">

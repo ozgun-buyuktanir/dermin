@@ -26,7 +26,7 @@ const ChatArea = ({ messages }: ChatAreaProps) => {
                 <span className="text-white text-3xl font-bold">D</span>
               </div>
               <h2 className="text-3xl font-bold text-[#5a5b6b] mb-4 tracking-tight">
-                Welcome to Dermin
+                Welcome to Dermin AI
               </h2>
               <p className="text-[#7a7b8a] max-w-md leading-relaxed font-normal">
                 I'm your AI assistant powered by advanced technology. I can help you with analysis, creative writing, problem-solving, and much more. How can I assist you today?

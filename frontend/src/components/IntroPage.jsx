@@ -10,8 +10,8 @@ const IntroPage = ({ onComplete }) => {
     const [fadeOut, setFadeOut] = useState(false)
 
     const slides = [
-        "Welcome to Dermin AI",
-        "Your intelligent skin analysis assistant.",
+        { text: "Welcome to ", highlight: "Dermin AI", color: "from-blue-500 to-purple-600" },
+        { text: "", highlight: "Dermin", color: "from-green-500 to-blue-500", suffix: " is your intelligent skin analysis assistant." },
         "Upload photos of your skin concerns for AI-powered insights.",
         "Get quick, informative guidance about potential skin conditions.",
         "We provide information only - consult a doctor for medical diagnosis.",
@@ -23,7 +23,8 @@ const IntroPage = ({ onComplete }) => {
             setIsTyping(true)
             setDisplayedText('')
             
-            const text = slides[currentSlide]
+            const slide = slides[currentSlide]
+            const text = typeof slide === 'string' ? slide : (slide.text + slide.highlight + (slide.suffix || ''))
             let index = 0
             
             const typeInterval = setInterval(() => {
@@ -102,10 +103,39 @@ const IntroPage = ({ onComplete }) => {
                         <div className={`transition-all duration-300 ${fadeOut ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'}`}>
                             <div className="min-h-[250px] flex flex-col items-center justify-center">
                                 <h1 className="text-5xl md:text-7xl font-light text-gray-700 leading-relaxed max-w-4xl text-center">
-                                    {displayedText}
-                                    {isTyping && (
-                                        <span className="animate-pulse text-gray-500">|</span>
-                                    )}
+                                    {(() => {
+                                        const slide = slides[currentSlide]
+                                        if (typeof slide === 'string') {
+                                            return (
+                                                <>
+                                                    {displayedText}
+                                                    {isTyping && (
+                                                        <span className="animate-pulse text-gray-500">|</span>
+                                                    )}
+                                                </>
+                                            )
+                                        } else {
+                                            const { text, highlight, color, suffix = '' } = slide
+                                            const fullText = text + highlight + suffix
+                                            const highlightStart = text.length
+                                            const highlightEnd = text.length + highlight.length
+                                            
+                                            return (
+                                                <>
+                                                    {displayedText.slice(0, highlightStart)}
+                                                    {displayedText.length > highlightStart && (
+                                                        <span className={`bg-gradient-to-r ${color} bg-clip-text text-transparent font-medium`}>
+                                                            {displayedText.slice(highlightStart, Math.min(displayedText.length, highlightEnd))}
+                                                        </span>
+                                                    )}
+                                                    {displayedText.length > highlightEnd && displayedText.slice(highlightEnd)}
+                                                    {isTyping && (
+                                                        <span className="animate-pulse text-gray-500">|</span>
+                                                    )}
+                                                </>
+                                            )
+                                        }
+                                    })()}
                                 </h1>
                                 
                                 {/* Next button - positioned below text */}

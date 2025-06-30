@@ -1,4 +1,4 @@
-import { Mail, Lock, Eye, EyeOff, CheckCircle, XCircle, AlertCircle, AlertTriangle } from 'lucide-react'
+import { Mail, Lock, Eye, EyeClosed, CheckCircle, XCircle, AlertCircle, AlertTriangle, Shield, FileText, ExternalLink } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import {
     signInWithPopup,
@@ -27,6 +27,8 @@ function Login() {
     const [timeLeft, setTimeLeft] = useState(60)
     const [inlineError, setInlineError] = useState('')
     const [inlineSuccess, setInlineSuccess] = useState('')
+    const [privacyAccepted, setPrivacyAccepted] = useState(false)
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false)
 
     // Ensure consistent styles across animations
     const ensureIconColors = () => {
@@ -130,6 +132,11 @@ function Login() {
 
         if (password.length < 6) {
             showInlineError('Password must be at least 6 characters long.')
+            return
+        }
+
+        if (!privacyAccepted) {
+            showInlineError('Please accept the privacy policy to continue.')
             return
         }
 
@@ -276,13 +283,15 @@ function Login() {
         setVerificationCode('')
         setInlineError('')
         setInlineSuccess('')
+        setPrivacyAccepted(false)
+        setShowPrivacyModal(false)
     }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#d7d8e0] via-[#e6e7ed] to-[#d7d8e0] flex items-center justify-center relative">
             <div className="bg-white/90 backdrop-blur-sm p-10 rounded-3xl shadow-2xl border border-white/20 w-[420px] max-w-md login-container">
                 <h1 className="text-3xl font-bold text-[#5a5b6b] text-center mb-10 tracking-tight">
-                    Dermin
+                    Dermin AI
                 </h1>
 
                 <div className="space-y-4">
@@ -398,7 +407,7 @@ function Login() {
                                     onClick={() => setShowPassword(!showPassword)}
                                     className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#6a6b7a] hover:text-[#5a5b6b] transition-colors duration-200 z-10"
                                 >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    {showPassword ? <EyeClosed size={18} /> : <Eye size={18} />}
                                 </button>
                             </div>
 
@@ -461,7 +470,7 @@ function Login() {
                                             onClick={() => setShowPassword(!showPassword)}
                                             className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#6a6b7a] hover:text-[#5a5b6b] transition-colors duration-200 z-10"
                                         >
-                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                            {showPassword ? <EyeClosed size={18} /> : <Eye size={18} />}
                                         </button>
                                     </div>
 
@@ -478,10 +487,32 @@ function Login() {
                                         />
                                     </div>
 
+                                    {/* Privacy Checkbox - Compact */}
+                                    <div className="flex items-center space-x-2 p-3 bg-gray-100/60 rounded-lg">
+                                        <input
+                                            type="checkbox"
+                                            id="privacy-checkbox-signup"
+                                            checked={privacyAccepted}
+                                            onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                                            className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-1"
+                                        />
+                                        <label htmlFor="privacy-checkbox-signup" className="text-xs text-gray-600 cursor-pointer">
+                                            I accept the{' '}
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPrivacyModal(true)}
+                                                className="text-blue-600 hover:text-blue-700 underline"
+                                            >
+                                                privacy policy
+                                            </button>
+                                            {' '}and data processing terms
+                                        </label>
+                                    </div>
+
                                     <div className="flex justify-center gap-3">
                                         <button
                                             onClick={sendVerificationCode}
-                                            disabled={!password || !confirmPassword || loading}
+                                            disabled={!password || !confirmPassword || loading || !privacyAccepted}
                                             className="bg-gradient-to-r from-[#8a8b9a] to-[#9a9bb5] text-white py-3 px-6 rounded-lg hover:from-[#7a7b8a] hover:to-[#8a8b9a] disabled:from-[#c8c9d4] disabled:to-[#d7d8e0] disabled:cursor-not-allowed transition-all duration-300 font-normal shadow-md backdrop-blur-sm"
                                         >
                                             Verify Email
@@ -544,6 +575,98 @@ function Login() {
                     </div>
                 </div>
             </div>
+
+            {/* Privacy Policy Modal */}
+            {showPrivacyModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200/50">
+                        <div className="p-8">
+                            {/* Header */}
+                            <div className="text-center mb-8">
+                                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Shield className="w-8 h-8 text-blue-600" />
+                                </div>
+                                <h2 className="text-3xl font-light text-gray-800 mb-2">Privacy & Data Processing</h2>
+                                <p className="text-gray-600">Your privacy is important to us</p>
+                            </div>
+
+                            {/* Privacy Content */}
+                            <div className="space-y-6 text-sm text-gray-700">
+                                <div>
+                                    <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                                        <FileText className="w-4 h-4" />
+                                        Data Collection
+                                    </h4>
+                                    <div className="bg-gray-50/80 rounded-lg p-4">
+                                        <ul className="space-y-2">
+                                            <li>• <strong>Skin Images:</strong> Photos you upload for AI analysis</li>
+                                            <li>• <strong>Account Info:</strong> Email address, name, and preferences</li>
+                                            <li>• <strong>Analysis History:</strong> Results and recommendations from previous analyses</li>
+                                            <li>• <strong>Technical Data:</strong> Device information for service optimization</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                                        <Shield className="w-4 h-4" />
+                                        How We Use Your Data
+                                    </h4>
+                                    <div className="bg-gray-50/80 rounded-lg p-4">
+                                        <ul className="space-y-2">
+                                            <li>• <strong>AI Analysis:</strong> Process skin images to provide personalized recommendations</li>
+                                            <li>• <strong>Service Improvement:</strong> Enhance AI accuracy and user experience</li>
+                                            <li>• <strong>History Tracking:</strong> Maintain your analysis history for progress monitoring</li>
+                                            <li>• <strong>Support:</strong> Provide technical assistance when needed</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                                        <Lock className="w-4 h-4" />
+                                        Data Protection
+                                    </h4>
+                                    <div className="bg-gray-50/80 rounded-lg p-4">
+                                        <ul className="space-y-2">
+                                            <li>• <strong>Encryption:</strong> All data encrypted in transit and at rest</li>
+                                            <li>• <strong>Access Control:</strong> Strict access limitations to authorized personnel only</li>
+                                            <li>• <strong>No Sharing:</strong> Your personal data is never shared with third parties</li>
+                                            <li>• <strong>Data Rights:</strong> You can request data deletion at any time</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-gray-200">
+                                    <p className="text-xs text-gray-500 text-center">
+                                        By continuing, you consent to the collection and processing of your personal data as described above. 
+                                        This consent is required for the AI skin analysis service to function properly.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Modal Actions */}
+                            <div className="flex flex-col sm:flex-row gap-3 mt-8">
+                                <button
+                                    onClick={() => setShowPrivacyModal(false)}
+                                    className="flex-1 px-6 py-3 text-gray-600 hover:text-gray-800 border border-gray-300 hover:border-gray-400 rounded-lg transition-colors font-medium"
+                                >
+                                    Close
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setPrivacyAccepted(true)
+                                        setShowPrivacyModal(false)
+                                    }}
+                                    className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+                                >
+                                    Accept & Continue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

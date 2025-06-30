@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { signOut } from 'firebase/auth'
+import { signOut, updateProfile } from 'firebase/auth'
 import { auth } from '../services/firebase'
 import TopBar from '../components/TopBar'
 import SkinAnalysisArea from '../components/SkinAnalysisArea'
@@ -14,6 +14,7 @@ function Dashboard() {
     const [activeAnalysisId, setActiveAnalysisId] = useState('')
     const [showIntro, setShowIntro] = useState(false)
     const [userName, setUserName] = useState('')
+    const [sidebarOpen, setSidebarOpen] = useState(true)
 
     useEffect(() => {
         // Auth state değişikliklerini dinle
@@ -21,9 +22,13 @@ function Dashboard() {
             if (user && user.emailVerified) {
                 setCurrentUser(user)
                 
-                // Check if user has seen intro
-                const hasSeenIntro = localStorage.getItem('dermin_intro_completed')
-                const savedUserName = localStorage.getItem('dermin_user_name')
+                // Check if user has seen intro - user-specific key
+                const userIntroKey = `dermin_intro_completed_${user.uid}`
+                const hasSeenIntro = localStorage.getItem(userIntroKey)
+                
+                // Get user name from Firebase profile or localStorage with user-specific key
+                const userNameKey = `dermin_user_name_${user.uid}`
+                const savedUserName = localStorage.getItem(userNameKey) || user.displayName
                 
                 if (!hasSeenIntro) {
                     setShowIntro(true)
@@ -48,11 +53,55 @@ function Dashboard() {
         }
     }
 
-    const handleIntroComplete = (name) => {
-        setUserName(name)
-        setShowIntro(false)
-        localStorage.setItem('dermin_intro_completed', 'true')
-        localStorage.setItem('dermin_user_name', name)
+    const handleIntroComplete = async (name) => {
+        if (currentUser) {
+            const userIntroKey = `dermin_intro_completed_${currentUser.uid}`
+            const userNameKey = `dermin_user_name_${currentUser.uid}`
+            
+            try {
+                // Update Firebase profile
+                await updateProfile(currentUser, {
+                    displayName: name
+                });
+                
+                setUserName(name)
+                setShowIntro(false)
+                localStorage.setItem(userIntroKey, 'true')
+                localStorage.setItem(userNameKey, name)
+            } catch (error) {
+                console.error('Error updating profile:', error)
+                // Fallback to localStorage only
+                setUserName(name)
+                setShowIntro(false)
+                localStorage.setItem(userIntroKey, 'true')
+                localStorage.setItem(userNameKey, name)
+            }
+        }
+    }
+
+    const handleUserNameChange = async (newName) => {
+        if (currentUser) {
+            const userNameKey = `dermin_user_name_${currentUser.uid}`
+            
+            try {
+                // Update Firebase profile
+                await updateProfile(currentUser, {
+                    displayName: newName
+                });
+                
+                setUserName(newName)
+                localStorage.setItem(userNameKey, newName)
+            } catch (error) {
+                console.error('Error updating profile:', error)
+                // Fallback to localStorage only
+                setUserName(newName)
+                localStorage.setItem(userNameKey, newName)
+            }
+        }
+    }
+
+    const toggleSidebar = () => {
+        setSidebarOpen(!sidebarOpen)
     }
 
     const handleNewAnalysis = () => {
@@ -83,9 +132,10 @@ function Dashboard() {
     return (
         <div className="h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 flex flex-col">
             <TopBar 
-                onToggleSidebar={() => {}} 
+                onToggleSidebar={toggleSidebar} 
                 onLogout={handleLogout}
                 userName={userName}
+                onUserNameChange={handleUserNameChange}
             />
             
             <div className="flex-1 flex overflow-hidden">
@@ -94,6 +144,7 @@ function Dashboard() {
                     activeAnalysisId={activeAnalysisId}
                     onNewAnalysis={handleNewAnalysis}
                     onSelectAnalysis={handleSelectAnalysis}
+                    isOpen={sidebarOpen}
                 />
                 
                 <SkinAnalysisArea userName={userName} />

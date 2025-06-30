@@ -33,7 +33,7 @@ const ChatBubble = ({ message }: ChatBubbleProps) => {
       <div className={cn("flex flex-col max-w-[85%]", isUser && "items-end")}>
         <div className={cn("mb-1 text-sm font-medium", isUser ? "text-right" : "text-left")}>
           <span className="text-[#5a5b6b]">
-            {isUser ? 'You' : 'Dermin'}
+            {isUser ? 'You' : 'Dermin AI'}
           </span>
         </div>
         

@@ -3,23 +3,33 @@ import { useNavigate } from 'react-router-dom'
 import { signOut } from 'firebase/auth'
 import { auth } from '../services/firebase'
 import TopBar from '../components/TopBar'
-import Sidebar from '../components/Sidebar'
-import ChatArea from '../components/ChatArea'
-import MessageInput from '../components/MessageInput'
+import SkinAnalysisArea from '../components/SkinAnalysisArea'
+import AnalysisHistory from '../components/AnalysisHistory'
+import IntroPage from '../components/IntroPage'
 
 function Dashboard() {
     const navigate = useNavigate()
-    const [messages, setMessages] = useState([])
     const [currentUser, setCurrentUser] = useState(null)
-    const [conversations, setConversations] = useState([])
-    const [activeConversationId, setActiveConversationId] = useState('')
-    const [sidebarOpen, setSidebarOpen] = useState(true)
+    const [analyses, setAnalyses] = useState([])
+    const [activeAnalysisId, setActiveAnalysisId] = useState('')
+    const [showIntro, setShowIntro] = useState(false)
+    const [userName, setUserName] = useState('')
 
     useEffect(() => {
         // Auth state değişikliklerini dinle
         const unsubscribe = auth.onAuthStateChanged((user) => {
             if (user && user.emailVerified) {
                 setCurrentUser(user)
+                
+                // Check if user has seen intro
+                const hasSeenIntro = localStorage.getItem('dermin_intro_completed')
+                const savedUserName = localStorage.getItem('dermin_user_name')
+                
+                if (!hasSeenIntro) {
+                    setShowIntro(true)
+                } else if (savedUserName) {
+                    setUserName(savedUserName)
+                }
             } else {
                 // Kullanıcı giriş yapmamış veya email verify edilmemiş
                 navigate('/login')
@@ -38,83 +48,21 @@ function Dashboard() {
         }
     }
 
-    const handleNewChat = () => {
-        const newConversationId = `conv_${Date.now()}`
-        setActiveConversationId(newConversationId)
-        setMessages([])
-        
-        // Add to conversations list
-        const newConversation = {
-            id: newConversationId,
-            title: 'New conversation',
-            timestamp: new Date().toISOString(),
-            preview: 'Start a new conversation...'
-        }
-        setConversations(prev => [newConversation, ...prev])
+    const handleIntroComplete = (name) => {
+        setUserName(name)
+        setShowIntro(false)
+        localStorage.setItem('dermin_intro_completed', 'true')
+        localStorage.setItem('dermin_user_name', name)
     }
 
-    const handleSelectConversation = (conversationId) => {
-        setActiveConversationId(conversationId)
-        // In a real app, you would load messages for this conversation
-        setMessages([])
+    const handleNewAnalysis = () => {
+        setActiveAnalysisId('')
+        // Reset any current analysis state
     }
 
-    const handleToggleSidebar = () => {
-        setSidebarOpen(!sidebarOpen)
-    }
-
-    const handleSendMessage = (message) => {
-        if (message.trim()) {
-            // Create a new conversation if none is active
-            let currentConvId = activeConversationId;
-            if (!currentConvId) {
-                currentConvId = `conv_${Date.now()}`;
-                setActiveConversationId(currentConvId);
-                
-                const newConversation = {
-                    id: currentConvId,
-                    title: message.slice(0, 30) + (message.length > 30 ? '...' : ''),
-                    timestamp: new Date().toISOString(),
-                    preview: message.slice(0, 50) + (message.length > 50 ? '...' : '')
-                };
-                setConversations(prev => [newConversation, ...prev]);
-            }
-
-            const newMessage = {
-                id: Date.now(),
-                content: message,
-                sender: 'user',
-                timestamp: new Date().toLocaleTimeString()
-            }
-            setMessages(prev => [...prev, newMessage])
-
-            // Update conversation preview if conversation exists
-            if (currentConvId) {
-                setConversations(prev => 
-                    prev.map(conv => 
-                        conv.id === currentConvId 
-                            ? { 
-                                ...conv, 
-                                preview: message.slice(0, 50) + (message.length > 50 ? '...' : ''),
-                                title: conv.title === 'New conversation' ? message.slice(0, 30) + (message.length > 30 ? '...' : '') : conv.title,
-                                timestamp: new Date().toISOString()
-                            }
-                            : conv
-                    )
-                )
-            }
-
-            // Simulated AI response
-            setTimeout(() => {
-                const aiResponse = {
-                    id: Date.now() + 1,
-                    content: `Thanks for your message: "${message}". This is a simulated response from Dermin AI.`,
-                    sender: 'ai',
-                    timestamp: new Date().toLocaleTimeString()
-                }
-                setMessages(prev => [...prev, aiResponse])
-            }, 1000)
-        }
+    const handleSelectAnalysis = (analysisId) => {
+        setActiveAnalysisId(analysisId)
+        // Load analysis data
     }
 
     if (!currentUser) {
@@ -128,22 +76,27 @@ function Dashboard() {
         )
     }
 
+    if (showIntro) {
+        return <IntroPage onComplete={handleIntroComplete} />
+    }
+
     return (
-        <div className="h-screen bg-gradient-to-br from-[#d7d8e0] via-[#e6e7ed] to-[#d7d8e0] flex flex-col">
-            <TopBar onToggleSidebar={handleToggleSidebar} onLogout={handleLogout} />
+        <div className="h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 flex flex-col">
+            <TopBar 
+                onToggleSidebar={() => {}} 
+                onLogout={handleLogout}
+                userName={userName}
+            />
             
             <div className="flex-1 flex overflow-hidden">
-                <Sidebar 
-                    conversations={conversations}
-                    activeConversationId={activeConversationId}
-                    onNewChat={handleNewChat}
-                    onSelectConversation={handleSelectConversation}
+                <AnalysisHistory 
+                    analyses={analyses}
+                    activeAnalysisId={activeAnalysisId}
+                    onNewAnalysis={handleNewAnalysis}
+                    onSelectAnalysis={handleSelectAnalysis}
                 />
                 
-                <div className="flex-1 flex flex-col bg-white/40 backdrop-blur-sm">
-                    <ChatArea messages={messages} />
-                    <MessageInput onSendMessage={handleSendMessage} />
-                </div>
+                <SkinAnalysisArea userName={userName} />
             </div>
         </div>
     )

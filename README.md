@@ -92,6 +92,10 @@ This project aims to develop a multi-functional AI application that:
 - Integrated chatbot functionality
 - Retrospective   
 
+## **Meeting 7 (05/07/2025)**
+- Retrospective
+- Sprint 2 planning
+
 
 </details>
 
@@ -104,37 +108,77 @@ This project aims to develop a multi-functional AI application that:
 ![Burndown Graph](Project_Management/sprint_1/Burndownchart/Sprint_1_graph.png)
 </details>
 <details>
-<summary>↩️ Summary</summary>
+<summary>📝 Sprint Notes</summary>
 
-**Sprint Notes:**
+## 📝 Sprint Notes
 
-- Scrum meetings were held using *WhatsApp* and *Teams* applications.
-- It was decided to *Jira* as a project management tool.
-- Application interface language decided *English*.
-- It was decided to use YoloV8 as a transformer model.
-- It was decided to use Gemini as a LLM model.
+- Scrum meetings were conducted using **WhatsApp** and **Microsoft Teams**.  
+- **Jira** was selected as the primary project management tool.  
+- The application interface language was set to **English**.  
+- **YOLOv8** was chosen as the object detection model.  
+- **Gemini** was selected as the Large Language Model (LLM) for integration.  
+- **Daily Scrum** meetings were held regularly, and screenshots of backlogs and meetings were documented.
 
-**Daily Scrum:** [Backlogs and Meeting Images](Project_Management/sprint_1/backlogs)
+## 🧠 Point Allocation Logic
 
-**Product Backlog URL:** [Jira](https://querriqe.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)
+- **Sprint 1** was dedicated to research, frontend development, and a small portion of the backend.  
+  It was estimated to require approximately **25–30%** of the total project effort.  
+  The total effort allocated to Sprint 1 was set at **250 points**.
 
-**Sprint Notes:**
+- **Sprint 2** focused on the development of:
+  - **Module 1**: Image Classification
+  - **Module 2**: User Segmentation with LLM-powered Chatbot  
+  This sprint was estimated to cover roughly **40%** of the total effort, with **350 points** allocated.
 
-- It was realy hard to decide name of the project.
-- Due to hardware limitations AI training is delayed to sprint 2.
-- Because of frequency of the meetings we used Jira as a second management to crate burndown chart.
-- 
+- **Sprint 3** will be dedicated to completing delayed tasks and polishing the product.  
+  It was planned to represent the remaining **30%** of the total effort, with **300 points** assigned.
 
-**Sprint Review Participants:**
-- *Ekin Karabulut, Enes Türköz, Kubilay Karaçar, Özgün Büyüktanır*
 
-**Sprint Retrospective:**
-- It was decided to design application logo in sprint 2.
-- It was decided to train AI model soon as posible.
-- It was decided to code integration between backend and AI components.
-- It was decided to add *KVKK(Personal Data Protection Law)* notice to main page.
-- It was decided to create a prototype for AI and LLM pipeline.
-- It was decided to select a color pallete for theme of the application.
+
+### 📊 Total Effort
+
+The project was estimated to require **900 points** of total effort, distributed across three sprints as follows:
+
+- **Sprint 1**: 250 points (~27.78%)  
+- **Sprint 2**: 350 points (~38.89%)  
+- **Sprint 3**: 300 points (~33.33%)
+
+
+## Daily Scrum:[Backlogs and Meeting Images](Project_Management/sprint_1/backlogs)
+
+
+## Product Backlog URL: [Jira](https://querriqe.atlassian.net/jira/software/projects/BACKLOG/boards/36)
+
+
+
+
+## ✒️ Sprint Review
+
+- Choosing the project name was particularly challenging.  
+- Due to hardware limitations, AI model training was postponed to **Sprint 2**.  
+- Because of the frequency of meetings, **Jira** was also used to generate a **burndown chart**.
+
+
+
+## 👥 Sprint Review Participants
+
+- Ekin Karabulut  
+- Enes Türköz  
+- Kubilay Karaçar  
+- Özgün Büyüktanır
+
+
+
+## 🔁 Sprint Retrospective
+
+- It was decided to design the **application logo** in Sprint 2.  
+- Training of the AI model was prioritized for the next sprint.  
+- Backend and AI module integration was planned.  
+- A **KVKK (Personal Data Protection Law)** notice will be added to the homepage.  
+- A prototype for the AI and LLM pipeline will be created.  
+- A **color palette** for the application's theme will be selected.
+
+---
 
 </details>
 </details>

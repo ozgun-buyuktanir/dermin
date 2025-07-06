@@ -106,9 +106,20 @@ This project aims to develop a multi-functional AI application that:
 ![Burndown Chart](Project_Management/sprint_1/Burndownchart/Sprint_1_burndownchart.png)
 
 ![Burndown Graph](Project_Management/sprint_1/Burndownchart/Sprint_1_graph.png)
+
+
 </details>
-<details>
-<summary>📝 Sprint Notes</summary>
+<details><summary>📸 App Screenshots </summary>
+<img width="1879" height="885" alt="Image" src="https://github.com/user-attachments/assets/436a0b56-bda7-4f54-bf64-80161069c10a" />
+<img width="1879" height="885" alt="Image" src="https://github.com/user-attachments/assets/e3f0bc91-05a1-4bdf-b3bc-56dec02f0a30" />
+<img width="1879" height="885" alt="Image" src="https://github.com/user-attachments/assets/42fff17c-2dd3-4c23-8608-e848d3a6d846" />
+<img width="1879" height="885" alt="Image" src="https://github.com/user-attachments/assets/bef4c862-8b49-4798-a2b5-d0365a85c516" />
+<img width="1879" height="885" alt="Image" src="https://github.com/user-attachments/assets/bf9ce4b6-6308-4499-919d-fe129c8eea0c" />
+<img width="1879" height="885" alt="Image" src="https://github.com/user-attachments/assets/8831e461-7c3a-43e9-9361-d8a2fe4a3453" />
+
+
+</details>
+<details><summary>📝 Sprint Notes</summary>
 
 ## 📝 Sprint Notes
 

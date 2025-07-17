@@ -1,0 +1,6 @@
+artifact_location: mlflow-artifacts:/583358939411005082
+creation_time: 1752728636142
+experiment_id: '583358939411005082'
+last_update_time: 1752728636142
+lifecycle_stage: active
+name: YOLOv8s-50epoch-Training

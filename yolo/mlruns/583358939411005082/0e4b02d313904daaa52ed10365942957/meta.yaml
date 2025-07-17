@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/583358939411005082/0e4b02d313904daaa52ed10365942957/artifacts
+end_time: 1752742770322
+entry_point_name: ''
+experiment_id: '583358939411005082'
+lifecycle_stage: active
+run_id: 0e4b02d313904daaa52ed10365942957
+run_name: popular-fox-424
+run_uuid: 0e4b02d313904daaa52ed10365942957
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1752728636250
+status: 3
+tags: []
+user_id: querriqe

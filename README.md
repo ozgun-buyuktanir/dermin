@@ -236,11 +236,14 @@ The project was estimated to require **900 points** of total effort, distributed
 - YOLOv8s model review
   
 ## **Meeting 6 (18/07/2025)**
-- Sprint_2 review
+- Sprint 2 review
 - Retrospective  
+- Chatbot integration review
 
 ## **Meeting 7 (19/07/2025)**
-- To be hold
+- Retrospective
+- Sprint 3 planning
+
 
 </details>
 

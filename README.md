@@ -27,17 +27,38 @@ This project aims to develop a multi-functional AI application that:
 - Provides personalized recommendations based on detected results
 - Stores and refines data continuously for active learning
 
+## ❗ Problem Statement  
+ 
+Skin conditions, lesions, and wounds are among the most common health issues affecting people worldwide. Many individuals delay or avoid consulting a dermatologist due to cost, accessibility issues, or the belief that their condition is not serious. This delay can lead to worsening of the condition, increased healthcare costs, and negative impacts on overall well-being.  
+ 
+Additionally, people often struggle to get timely appointments with dermatologists at hospitals, facing long waiting lists and overcrowded clinics. Even when appointments are available, consultations can be expensive, creating a barrier for those who need early evaluation and care.  
+ 
+There is currently a lack of accessible, reliable, and easy-to-use digital tools that can help users identify potential skin issues early and guide them toward appropriate care. While some applications offer basic skin analysis, they are often limited in accuracy, lack real-time updates, or fail to provide actionable recommendations for users.  
+ 
+To address this gap, we designed **Dermin**, a web application powered by artificial intelligence. Dermin allows users to capture images of their skin lesions or conditions, classifies them using advanced computer vision models, and provides tailored recommendations and guidance. By combining AI-driven classification with user-friendly design, Dermin aims to improve early detection, increase awareness, and make dermatological support more accessible to everyone.
+
+ 
+## 🎯 Objectives  
+ 
+- To create an accessible and intuitive web application that allows users to take photos of their skin conditions easily.  
+- To classify skin lesions, wounds, or conditions using a reliable and updatable AI model.  
+- To provide users with meaningful insights, suggestions, and guidance for further medical attention if necessary.  
+- To continuously improve the AI model and segmentation through feedback loops and new user data.  
+- To make dermatological support more inclusive, affordable, and available beyond traditional healthcare settings.
+ 
+
 ---
 
-## 🚀 Features
-
-- ✅ Skin disease detection 
-- ✅ Skin type classification via LLM-enhanced prompt generation
-- ✅ Training data enrichment and feedback loop
+## 🚀 Modules
+ 
+- Module-1 : Yolo based classification
+- Module-2: Survey based user segmentation
+- Module-3: Dermatology themed chatbot
 
 ---
 
-## 🎯 Target Audience
+
+## 💼 Target Audience
 
 - Dermatologists and healthcare professionals
 - Patience
@@ -343,3 +364,130 @@ The project was estimated to require **900 points** of total effort, distributed
 </details>
 </details>
 
+
+<details>
+<summary><h3>🔁 Sprint 3</h3></summary>
+
+### 🎯 Objectives
+- Module-2 (*Survey Based Segmentation*)
+- Data Analysis
+- Module-3 (*Chatbot*) Integration
+- *Backend* and *Frontend* components
+- Polishing
+- Promotional video 
+
+
+<details>
+<summary>👥 Meeting Notes</summary>
+
+## **Meeting 1 (27/07/2025)**
+- Design a survey to gather insights on people’s skin and hair concern
+
+## **Meeting 2 (28/07/2025)**
+- Chatbot Integration 
+
+## **Meeting 3 (29/07/2025)**
+- The survey results were discussed.
+- It was decided that data analysis could be performed since the required number (of responses) was reached.
+
+## **Meeting 4 (31/07/2025)**
+- Data analysis and key points to focus on were discussed.
+
+## **Meeting 5 (01/08/2025)**
+- Data Analysis review
+
+## **Meeting 6 (02/08/2025)**
+- Sprint Retrospective
+
+## **Meeting 7 (03/08/2025)**
+- Sprint Retrospective
+- Promotional video
+
+
+</details>
+
+<details>
+<summary>⭐ Burndown Chart</summary>
+
+![Burndown Chart](Project_Management/sprint_3/Burndownchart/Sprint_3_burndownchart.png)
+
+![Burndown Graph](Project_Management/sprint_3/Burndownchart/Sprint_3_graph.png)
+
+
+
+</details>
+
+
+<details><summary>📝 Sprint Notes</summary>
+
+## 📝 Sprint Notes
+
+- Survey data for **Module-2** was collected and organized.
+- Segmentation for **Module-2** was completed.
+- Chatbot integration for **Module-3** was finalized.
+- **Module-2** was connected to the other modules.
+- **Frontend** and **Backend** were rewritten and polished.
+- 
+
+
+## 🧠 Point Allocation Logic
+
+- **Sprint 1** was dedicated to research, frontend development, and a small portion of the backend.  
+  It was estimated to require approximately **25–30%** of the total project effort.  
+  The total effort allocated to Sprint 1 was set at **250 points**.
+
+- **Sprint 2** focused on the development of:
+  - **Module 1**: Image Classification
+  - **Module 2**: User Segmentation
+  - **Module 3**: LLM-powered Chatbot 
+  This sprint was estimated to cover roughly **40%** of the total effort, with **350 points** allocated.
+
+- **Sprint 3** will be dedicated to completing delayed tasks and polishing the product.  
+  It was planned to represent the remaining **30%** of the total effort, with **300 points** assigned.
+
+
+
+### 📊 Total Effort
+
+The project was estimated to require **900 points** of total effort, distributed across three sprints as follows:
+
+- **Sprint 1**: 250 points (~27.78%)  
+- **Sprint 2**: 350 points (~38.89%)  
+- **Sprint 3**: 300 points (~33.33%)
+
+
+## Daily Scrum:[Backlogs and Meeting Images](Project_Management/sprint_3/backlogs)
+
+
+## Product Backlog URL: [Jira](https://querriqe.atlassian.net/jira/software/projects/BACKLOG/boards/36)
+
+
+
+
+## ✒️ Sprint Review
+ - **Kubilay Karaçar** *could not* commit the updated backend and frontend parts he prepared due to a special circumstance.
+- Because of the situation mentioned above, the **backend and frontend** were integrated from scratch to complete the project.
+- Since the initially collected survey data for **Module-2** was sufficient for the first analysis, the analysis was completed. However, a broader analysis will be continuously updated by collecting more user data.
+
+ 
+
+
+## 👥 Sprint Review Participants
+
+- Ekin Karabulut  
+- Enes Türköz  
+- Kubilay Karaçar  
+- Özgün Büyüktanır
+
+
+
+## 🔁 Sprint Retrospective
+
+- The **YOLO** model will be updated again with data obtained from users.
+- **Segmentation** from users will be updated as more data is collected.
+- The frontend will be updated based on user feedback.
+
+---
+
+</details>
+</details>

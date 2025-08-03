@@ -1,17 +1,71 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import KvkkPage from "./pages/KvkkPage";
+import SurveyPage from "./pages/SurveyPage";
+import DashboardPage from "./pages/DashboardPage";
+import YoloChatPage from "./pages/YoloChatPage";
+import DerminChatBotPage from "./pages/DerminChatBotPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-function App() {
+export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/" element={<Navigate to="/login" />} />
+        {/* 🔓 Public Routes */}
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+
+        {/* 🔒 KVKK */}
+        <Route
+          path="/kvkk"
+          element={
+            <ProtectedRoute step="kvkk">
+              <KvkkPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 🔒 Survey */}
+        <Route
+          path="/survey"
+          element={
+            <ProtectedRoute step="survey">
+              <SurveyPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 🔒 Dashboard */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute step="dashboard">
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 🔒 YOLO */}
+        <Route
+          path="/yolo"
+          element={
+            <ProtectedRoute step="yolo">
+              <YoloChatPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 🔒 Chatbot */}
+        <Route
+          path="/dermin-chat"
+          element={
+            <ProtectedRoute step="chatbot">
+              <DerminChatBotPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Router>
-  )
+  );
 }
-
-export default App

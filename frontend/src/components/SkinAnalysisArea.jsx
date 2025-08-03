@@ -8,6 +8,13 @@ const SkinAnalysisArea = ({ userName }) => {
     const [isAnalyzing, setIsAnalyzing] = useState(false)
     const [dragActive, setDragActive] = useState(false)
     const [analysisProgress, setAnalysisProgress] = useState(0)
+    const [enablePreprocessing, setEnablePreprocessing] = useState(true)
+    const [preprocessingOptions, setPreprocessingOptions] = useState({
+        convert_to_grayscale: true,
+        enhance_contrast: true,
+        noise_reduction: true,
+        normalize_brightness: true
+    })
     const navigate = useNavigate()
 
     const handleDrop = (e) => {
@@ -53,6 +60,12 @@ const SkinAnalysisArea = ({ userName }) => {
             // Create FormData for file upload
             const formData = new FormData()
             formData.append('file', uploadedFile)
+            formData.append('confidence_threshold', '0.25')
+            formData.append('enable_preprocessing', enablePreprocessing.toString())
+            formData.append('convert_to_grayscale', preprocessingOptions.convert_to_grayscale.toString())
+            formData.append('enhance_contrast', preprocessingOptions.enhance_contrast.toString())
+            formData.append('noise_reduction', preprocessingOptions.noise_reduction.toString())
+            formData.append('normalize_brightness', preprocessingOptions.normalize_brightness.toString())
 
             // API call to analyze skin
             const response = await fetch('http://localhost:8000/api/analyze-skin', {
@@ -247,6 +260,103 @@ const SkinAnalysisArea = ({ userName }) => {
                         <div>• Hold camera steady</div>
                         <div>• Focus on the skin area</div>
                         <div>• Avoid shadows & reflections</div>
+                    </div>
+                </div>
+
+                {/* AI Analysis Settings */}
+                <div className="mt-6 bg-blue-50/80 backdrop-blur-sm border border-blue-200/50 rounded-2xl p-6">
+                    <h4 className="font-medium text-gray-800 mb-4 flex items-center gap-2">
+                        <Shield className="w-4 h-4" />
+                        AI Analysis Settings
+                    </h4>
+                    
+                    {/* Enable Preprocessing Toggle */}
+                    <div className="mb-4">
+                        <label className="flex items-center justify-between cursor-pointer">
+                            <div>
+                                <span className="font-medium text-gray-700">Enhanced Analysis</span>
+                                <p className="text-sm text-gray-600 font-light">Apply image preprocessing for better detection accuracy</p>
+                            </div>
+                            <div className="relative">
+                                <input
+                                    type="checkbox"
+                                    checked={enablePreprocessing}
+                                    onChange={(e) => setEnablePreprocessing(e.target.checked)}
+                                    className="sr-only"
+                                />
+                                <div className={`w-11 h-6 rounded-full transition-colors duration-200 ${
+                                    enablePreprocessing ? 'bg-gray-800' : 'bg-gray-300'
+                                }`}>
+                                    <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
+                                        enablePreprocessing ? 'translate-x-6 mt-1' : 'translate-x-1 mt-1'
+                                    }`}></div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    {/* Preprocessing Options */}
+                    {enablePreprocessing && (
+                        <div className="space-y-3 pl-4 border-l-2 border-gray-200">
+                            <label className="flex items-center justify-between text-sm">
+                                <span className="text-gray-700">Convert to Grayscale (Recommended)</span>
+                                <input
+                                    type="checkbox"
+                                    checked={preprocessingOptions.convert_to_grayscale}
+                                    onChange={(e) => setPreprocessingOptions(prev => ({
+                                        ...prev,
+                                        convert_to_grayscale: e.target.checked
+                                    }))}
+                                    className="w-4 h-4 text-gray-800 bg-gray-100 border-gray-300 rounded focus:ring-gray-500"
+                                />
+                            </label>
+                            
+                            <label className="flex items-center justify-between text-sm">
+                                <span className="text-gray-700">Enhance Contrast</span>
+                                <input
+                                    type="checkbox"
+                                    checked={preprocessingOptions.enhance_contrast}
+                                    onChange={(e) => setPreprocessingOptions(prev => ({
+                                        ...prev,
+                                        enhance_contrast: e.target.checked
+                                    }))}
+                                    className="w-4 h-4 text-gray-800 bg-gray-100 border-gray-300 rounded focus:ring-gray-500"
+                                />
+                            </label>
+                            
+                            <label className="flex items-center justify-between text-sm">
+                                <span className="text-gray-700">Noise Reduction</span>
+                                <input
+                                    type="checkbox"
+                                    checked={preprocessingOptions.noise_reduction}
+                                    onChange={(e) => setPreprocessingOptions(prev => ({
+                                        ...prev,
+                                        noise_reduction: e.target.checked
+                                    }))}
+                                    className="w-4 h-4 text-gray-800 bg-gray-100 border-gray-300 rounded focus:ring-gray-500"
+                                />
+                            </label>
+                            
+                            <label className="flex items-center justify-between text-sm">
+                                <span className="text-gray-700">Normalize Brightness</span>
+                                <input
+                                    type="checkbox"
+                                    checked={preprocessingOptions.normalize_brightness}
+                                    onChange={(e) => setPreprocessingOptions(prev => ({
+                                        ...prev,
+                                        normalize_brightness: e.target.checked
+                                    }))}
+                                    className="w-4 h-4 text-gray-800 bg-gray-100 border-gray-300 rounded focus:ring-gray-500"
+                                />
+                            </label>
+                        </div>
+                    )}
+                    
+                    <div className="mt-4 p-3 bg-blue-100/50 rounded-lg border border-blue-200/30">
+                        <p className="text-xs text-blue-700 font-light flex items-center gap-2">
+                            <Clock className="w-3 h-3" />
+                            Enhanced analysis may take slightly longer but provides more accurate results
+                        </p>
                     </div>
                 </div>
             </div>

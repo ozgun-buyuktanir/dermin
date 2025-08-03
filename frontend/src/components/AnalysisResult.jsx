@@ -27,6 +27,14 @@ const AnalysisResult = ({ analysisData, isLoading = false, onNewAnalysis }) => {
   const [showChat, setShowChat] = useState(false);
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [showDetections, setShowDetections] = useState(true);
+  const [imageView, setImageView] = useState('original'); // 'original', 'preprocessed', 'detections'
+  const [imageDimensions, setImageDimensions] = useState({
+    width: 0,
+    height: 0,
+    naturalWidth: 0,
+    naturalHeight: 0
+  });
 
   if (isLoading) {
     return (
@@ -57,6 +65,14 @@ const AnalysisResult = ({ analysisData, isLoading = false, onNewAnalysis }) => {
   const { result } = analysisData;
   const { predictions = [], ai_explanation = {}, processing_time, model_info } = result;
   const explanation = ai_explanation.explanation || {};
+
+  // Console log for YOLO input verification
+  React.useEffect(() => {
+    if (result?.yolo_input_verified_grayscale !== undefined) {
+      console.log('🔍 YOLO Input Status:', result.yolo_input_verified_grayscale ? 'GRAYSCALE ✅' : 'COLOR ❌');
+      console.log('📊 Analysis Result:', result);
+    }
+  }, [result]);
 
   // Chat açıldığında başlangıç mesajını ekle
   React.useEffect(() => {
@@ -106,42 +122,30 @@ Size nasıl yardımcı olabilirim?`,
     setIsTyping(true);
 
     try {
-      const token = localStorage.getItem('auth_token');
-      
-      // Get analysis ID from localStorage or props
+      // Get analysis ID from localStorage or use 'temp' for demo mode
       const analysisId = localStorage.getItem('current_analysis_id') || 'temp';
       
-      const response = await fetch(`http://localhost:8000/api/chat/analysis/${analysisId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ 
-          content,
-          analysis_data: {
-            predictions: predictions,
-            ai_explanation: explanation,
-            general_condition: explanation.general_condition,
-            recommendations: explanation.recommendations,
-            doctor_consultation: explanation.doctor_consultation,
-            lifestyle_advice: explanation.lifestyle_advice
-          }
-        })
-      });
+      // Prepare analysis data for context
+      const analysisContextData = {
+        predictions: predictions,
+        ai_explanation: explanation,
+        general_condition: explanation.general_condition,
+        recommendations: explanation.recommendations,
+        doctor_consultation: explanation.doctor_consultation,
+        lifestyle_advice: explanation.lifestyle_advice
+      };
 
-      if (response.ok) {
-        const data = await response.json();
-        const aiMessage = {
-          id: messages.length + 2,
-          content: data.response,
-          sender: 'ai',
-          timestamp: new Date().toLocaleTimeString(),
-        };
-        setMessages(prev => [...prev, aiMessage]);
-      } else {
-        throw new Error('Chat response failed');
-      }
+      // Import and use dataService
+      const { default: dataService } = await import('../services/dataService');
+      const response = await dataService.chatWithAnalysis(analysisId, content, analysisContextData);
+
+      const aiMessage = {
+        id: messages.length + 2,
+        content: response.response,
+        sender: 'ai',
+        timestamp: new Date().toLocaleTimeString(),
+      };
+      setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       console.error('Chat error:', error);
       const errorMessage = {
@@ -230,19 +234,165 @@ Size nasıl yardımcı olabilirim?`,
             >
               {/* Left Column - Image and Detected Issues */}
               <div className="lg:col-span-4 space-y-4 analysis-column custom-scrollbar">
-                {/* Image */}
+                {/* Image with YOLO Detections */}
                 {analysisData.image_url && (
                   <div className="bg-[#0D1B2A]/50 backdrop-blur-sm border border-[#778DA9]/20 rounded-2xl p-4">
                     <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-100 mb-3">
                       <Camera className="h-5 w-5 text-[#90BE6D]" />
                       Analiz Edilen Görsel
                     </h3>
-                    <div className="relative w-full h-48 bg-[#132D46]/30 rounded-xl border border-[#778DA9]/20 overflow-hidden">
-                      <img
-                        src={analysisData.image_url}
-                        alt="Analyzed skin"
-                        className="w-full h-full object-cover"
-                      />
+                    
+                    {/* Toggle between different image views */}
+                    <div className="mb-3 flex gap-2">
+                      <button
+                        onClick={() => setImageView('original')}
+                        className={`px-3 py-1 rounded-lg text-sm transition-all ${
+                          imageView === 'original'
+                            ? 'bg-[#90BE6D] text-white' 
+                            : 'bg-[#132D46]/50 text-gray-300 hover:bg-[#778DA9]/30'
+                        }`}
+                      >
+                        Orijinal
+                      </button>
+                      
+                      {result.preprocessed_image && (
+                        <button
+                          onClick={() => setImageView('preprocessed')}
+                          className={`px-3 py-1 rounded-lg text-sm transition-all ${
+                            imageView === 'preprocessed'
+                              ? 'bg-[#90BE6D] text-white' 
+                              : 'bg-[#132D46]/50 text-gray-300 hover:bg-[#778DA9]/30'
+                          }`}
+                        >
+                          İşlenmiş
+                        </button>
+                      )}
+                      
+                      {predictions.length > 0 && (
+                        <button
+                          onClick={() => setImageView('detections')}
+                          className={`px-3 py-1 rounded-lg text-sm transition-all ${
+                            imageView === 'detections'
+                              ? 'bg-[#90BE6D] text-white' 
+                              : 'bg-[#132D46]/50 text-gray-300 hover:bg-[#778DA9]/30'
+                          }`}
+                        >
+                          YOLO Görüşü
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="relative w-full h-64 bg-[#132D46]/30 rounded-xl border border-[#778DA9]/20 overflow-hidden">
+                      {imageView === 'original' && (
+                        // Original image
+                        <img
+                          src={analysisData.image_url}
+                          alt="Original skin photo"
+                          className="w-full h-full object-cover"
+                          onLoad={(e) => {
+                            setImageDimensions({
+                              width: e.target.offsetWidth,
+                              height: e.target.offsetHeight,
+                              naturalWidth: e.target.naturalWidth,
+                              naturalHeight: e.target.naturalHeight
+                            });
+                          }}
+                        />
+                      )}
+                      
+                      {imageView === 'preprocessed' && result.preprocessed_image && (
+                        // Preprocessed image
+                        <img
+                          src={result.preprocessed_image}
+                          alt="Preprocessed skin photo"
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                      
+                      {imageView === 'detections' && (
+                        // Detections view - show how YOLO sees it (grayscale with detections)
+                        <>
+                          {/* Always use preprocessed image for YOLO view, with manual overlay */}
+                          <img
+                            src={result.preprocessed_image || analysisData.image_url}
+                            alt="YOLO detection view (grayscale with detections)"
+                            className={`w-full h-full object-cover ${!result.preprocessed_image ? 'filter grayscale' : ''}`}
+                            onLoad={(e) => {
+                              setImageDimensions({
+                                width: e.target.offsetWidth,
+                                height: e.target.offsetHeight,
+                                naturalWidth: e.target.naturalWidth,
+                                naturalHeight: e.target.naturalHeight
+                              });
+                            }}
+                          />
+                          
+                          {/* Always show manual detection overlays on preprocessed image */}
+                          {predictions.length > 0 && imageDimensions.width > 0 && (
+                            <div className="absolute inset-0">
+                              {predictions.map((prediction, index) => {
+                                if (!prediction.bbox) return null;
+                                
+                                // Scale bbox coordinates to image display size
+                                const scaleX = imageDimensions.width / imageDimensions.naturalWidth;
+                                const scaleY = imageDimensions.height / imageDimensions.naturalHeight;
+                                
+                                const x = prediction.bbox.x * scaleX;
+                                const y = prediction.bbox.y * scaleY;
+                                const width = prediction.bbox.width * scaleX;
+                                const height = prediction.bbox.height * scaleY;
+                                
+                                const confidence = prediction.confidence || 0;
+                                const color = confidence > 0.7 ? 'rgb(239, 68, 68)' : 'rgb(245, 158, 11)'; // red for high confidence, yellow for medium
+                                
+                                return (
+                                  <div
+                                    key={index}
+                                    className="absolute border-2 pointer-events-none"
+                                    style={{
+                                      left: `${x}px`,
+                                      top: `${y}px`,
+                                      width: `${width}px`,
+                                      height: `${height}px`,
+                                      borderColor: color,
+                                      backgroundColor: `${color}20`
+                                    }}
+                                  >
+                                    {/* Label */}
+                                    <div 
+                                      className="absolute -top-6 left-0 px-2 py-1 text-xs font-semibold text-white rounded-md shadow-lg whitespace-nowrap"
+                                      style={{ backgroundColor: color }}
+                                    >
+                                      {prediction.class_name} ({Math.round(confidence * 100)}%)
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    
+                    {/* Detection info */}
+                    <div className="mt-3 text-xs text-gray-400 flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-[#90BE6D]" />
+                        {predictions.length} adet sorun tespit edildi
+                        {result.preprocessing_applied && (
+                          <span className="text-[#90BE6D]">• Gelişmiş analiz uygulandı</span>
+                        )}
+                      </div>
+                      {imageView === 'detections' && (
+                        <span className="text-[#90BE6D] ml-6">
+                          YOLO'nun Görüş Açısı • Kırmızı: Yüksek güvenilirlik • Sarı: Orta güvenilirlik
+                        </span>
+                      )}
+                      {imageView === 'preprocessed' && (
+                        <span className="text-[#90BE6D] ml-6">
+                          Bu görüntü AI analizi için optimize edilmiştir (siyah-beyaz, kontrast artırılmış)
+                        </span>
+                      )}
                     </div>
                   </div>
                 )}

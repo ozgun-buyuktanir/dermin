@@ -10,8 +10,8 @@ const AnalysesPage = () => {
   const [analyses, setAnalyses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('date'); // date, confidence, severity
-  const [filterBy, setFilterBy] = useState('all'); // all, high, medium, low
+  const [sortBy, setSortBy] = useState('date');
+  const [filterBy, setFilterBy] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
@@ -24,36 +24,36 @@ const AnalysesPage = () => {
 
         const response = await dataService.getUserAnalyses();
         
-        // Mock data for demonstration - replace with actual API response
+       
         const mockAnalyses = [
           {
             id: '1',
-            title: 'Yüz Analizi - 15 Ocak',
+            title: 'Sivilce Analizi - 1 Ağustos',
             date: '2024-01-15',
-            thumbnail: 'https://via.placeholder.com/100x100?text=Face',
+            thumbnail: '/ornekler/sivilce-akne.jpg',
             condition: 'Akne',
             severity: 'medium',
-            confidence: 0.85,
+            confidence: 0.32,
             status: 'completed'
           },
           {
             id: '2', 
-            title: 'Kol Analizi - 12 Ocak',
+            title: 'İltihaplı Cilt Analizi - 2 Ağustos',
             date: '2024-01-12',
-            thumbnail: 'https://via.placeholder.com/100x100?text=Arm',
-            condition: 'Egzama',
+            thumbnail: '/ornekler/iltihaplı-sivilce.webp',
+            condition: 'Sivilce',
             severity: 'high',
-            confidence: 0.92,
+            confidence: 0.33,
             status: 'completed'
           },
           {
             id: '3',
-            title: 'El Analizi - 10 Ocak',
+            title: 'Kuru Cilt Analizi - 3 Ağustos',
             date: '2024-01-10',
-            thumbnail: 'https://via.placeholder.com/100x100?text=Hand',
-            condition: 'Normal',
+            thumbnail: '/ornekler/kurdesen.png',
+            condition: 'Kuru Cilt',
             severity: 'low',
-            confidence: 0.78,
+            confidence: 0.3,
             status: 'completed'
           }
         ];

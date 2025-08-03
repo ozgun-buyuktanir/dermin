@@ -204,6 +204,11 @@ async def upload_image(file: UploadFile = File(...)):
 async def analyze_skin_image(
     file: UploadFile = File(...),
     confidence_threshold: float = 0.25,
+    enable_preprocessing: bool = True,
+    convert_to_grayscale: bool = True,
+    enhance_contrast: bool = True,
+    noise_reduction: bool = True,
+    normalize_brightness: bool = True,
     current_user_id: str = Depends(get_current_user)
 ):
     """Cilt fotoğrafını YOLO ile analiz et"""
@@ -230,13 +235,23 @@ async def analyze_skin_image(
             if not success:
                 raise HTTPException(status_code=500, detail="Failed to load YOLO model")
         
+        # Prepare preprocessing options
+        preprocessing_options = {
+            'convert_to_grayscale': convert_to_grayscale,
+            'enhance_contrast': enhance_contrast,
+            'noise_reduction': noise_reduction,
+            'normalize_brightness': normalize_brightness
+        }
+        
         # Run prediction
         import time
         start_time = time.time()
         
         prediction_result = yolo_predictor.predict_image(
             image_data=image_data,
-            confidence_threshold=confidence_threshold
+            confidence_threshold=confidence_threshold,
+            enable_preprocessing=enable_preprocessing,
+            preprocessing_options=preprocessing_options
         )
         
         processing_time = time.time() - start_time
@@ -588,24 +603,75 @@ async def chat_with_analysis(
         from motor.motor_asyncio import AsyncIOMotorClient
         from bson import ObjectId
         
-        # Get analysis data
+        # Handle temporary/demo mode
+        if analysis_id == 'temp':
+            # Use analysis data provided in the message if available
+            analysis_data = message.get("analysis_data", {})
+            if not analysis_data:
+                raise HTTPException(status_code=400, detail="Analysis data required for temp mode")
+            
+            # Get user data for context
+            user = await db.get_user(current_user_id)
+            user_survey_data = user.get("survey_data", {}) if user else {}
+            
+            # Get forum results based on user message and analysis
+            forum_results = gemini_client.get_forum_results(
+                query=message.get("content", ""),
+                problem_type=analysis_data.get("predictions", [{}])[0].get("class_name") if analysis_data.get("predictions") else None
+            )
+            
+            # Get expert analysis from provided data
+            expert_analysis = analysis_data.get("ai_explanation", {})
+            
+            # Generate AI response based on analysis and user question
+            ai_response = gemini_client.generate_chat_response(
+                user_message=message.get("content", ""),
+                analysis_data=analysis_data,
+                user_survey_data=user_survey_data,
+                forum_results=forum_results,
+                expert_analysis=expert_analysis,
+                language="tr"
+            )
+            
+            return {
+                "response": ai_response,
+                "chat_id": "temp"
+            }
+        
+        # Get analysis data from database
         client = AsyncIOMotorClient(os.getenv('MONGODB_URL'))
         database = client[os.getenv('DATABASE_NAME')]
         
-        analysis = await database.analyses.find_one({"_id": ObjectId(analysis_id)})
+        try:
+            analysis = await database.analyses.find_one({"_id": ObjectId(analysis_id)})
+        except Exception as e:
+            client.close()
+            raise HTTPException(status_code=400, detail="Invalid analysis ID format")
         
         if not analysis:
+            client.close()
             raise HTTPException(status_code=404, detail="Analysis not found")
         
         # Get user data for context
         user = await db.get_user(current_user_id)
         user_survey_data = user.get("survey_data", {}) if user else {}
         
+        # Get forum results based on user message and analysis
+        forum_results = gemini_client.get_forum_results(
+            query=message.get("content", ""),
+            problem_type=analysis.get("result", {}).get("predictions", [{}])[0].get("class_name") if analysis.get("result", {}).get("predictions") else None
+        )
+        
+        # Get expert analysis from stored results
+        expert_analysis = analysis.get("result", {}).get("explanation", {})
+        
         # Generate AI response based on analysis and user question
         ai_response = gemini_client.generate_chat_response(
             user_message=message.get("content", ""),
             analysis_data=analysis.get("result", {}),
             user_survey_data=user_survey_data,
+            forum_results=forum_results,
+            expert_analysis=expert_analysis,
             language="tr"
         )
         
@@ -674,6 +740,87 @@ async def get_chat_history(
     except Exception as e:
         print(f"Chat history error: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch chat history")
+
+@app.post("/api/chat/general")
+async def general_chat(
+    message: dict,
+    current_user_id: str = Depends(get_current_user)
+):
+    """Genel chatbot sohbeti"""
+    try:
+        # Get user data for context
+        user = await db.get_user(current_user_id)
+        user_survey_data = user.get("survey_data", {}) if user else {}
+        
+        # Get analysis context if provided
+        analysis_context = message.get("analysis_context", {})
+        
+        # Get forum results based on user message
+        forum_results = gemini_client.get_forum_results(
+            query=message.get("content", ""),
+            problem_type=None
+        )
+        
+        # If analysis context is provided, use the chat_response method instead
+        if analysis_context:
+            ai_response = gemini_client.generate_chat_response(
+                user_message=message.get("content", ""),
+                analysis_data=analysis_context,
+                user_survey_data=user_survey_data,
+                forum_results=forum_results,
+                expert_analysis=analysis_context,
+                language="tr"
+            )
+        else:
+            # Generate general AI response
+            ai_response = gemini_client.generate_general_chat_response(
+                user_message=message.get("content", ""),
+                user_survey_data=user_survey_data,
+                forum_results=forum_results,
+                language="tr"
+            )
+        
+        return {
+            "response": ai_response
+        }
+        
+    except Exception as e:
+        print(f"General chat error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process chat message")
+
+@app.get("/api/analyses/{analysis_id}")
+async def get_analysis(
+    analysis_id: str,
+    current_user_id: str = Depends(get_current_user)
+):
+    """Tek analiz getir"""
+    try:
+        from motor.motor_asyncio import AsyncIOMotorClient
+        from bson import ObjectId
+        
+        client = AsyncIOMotorClient(os.getenv('MONGODB_URL'))
+        database = client[os.getenv('DATABASE_NAME')]
+        
+        analysis = await database.analyses.find_one({
+            "_id": ObjectId(analysis_id),
+            "user_id": current_user_id
+        })
+        
+        client.close()
+        
+        if not analysis:
+            raise HTTPException(status_code=404, detail="Analysis not found")
+        
+        analysis["id"] = str(analysis["_id"])
+        analysis["_id"] = str(analysis["_id"])
+        
+        return analysis
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Get analysis error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get analysis")
 
 if __name__ == "__main__":
     import uvicorn

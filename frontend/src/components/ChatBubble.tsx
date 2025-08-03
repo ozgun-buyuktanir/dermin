@@ -66,7 +66,6 @@ const ChatBubble = ({ message }: ChatBubbleProps) => {
               <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  // Custom styling for markdown elements with dark theme
                   h1: ({node, ...props}) => <h1 className="text-xl font-bold text-gray-100 mb-2" {...props} />,
                   h2: ({node, ...props}) => <h2 className="text-lg font-semibold text-gray-100 mb-2" {...props} />,
                   h3: ({node, ...props}) => <h3 className="text-md font-medium text-gray-100 mb-1" {...props} />,

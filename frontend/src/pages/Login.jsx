@@ -361,8 +361,8 @@ function Login() {
 
                     <div className="bg-[#1B263B]/80 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-[#778DA9]/20 w-full max-w-md login-container relative z-10 glow-effect smooth-appear">
                         <div className="text-center mb-6">
-                            <div className="w-16 h-16 bg-gradient-to-r from-[#778DA9] to-[#90BE6D] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transition-all duration-300 hover:scale-105">
-                                <img src={logo} alt="Dermin Logo" className="w-10 h-10 filter brightness-0 invert" />
+                            <div className="w-24 h-24 bg-gradient-to-r from-[#778DA9] to-[#90BE6D] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transition-all duration-300 hover:scale-105">
+                                <img src={logo} alt="Dermin Logo" className="w-16 h-16 filter brightness-0 invert" />
                             </div>
                             <h1 className="text-2xl font-light text-[#E0E1DD] mb-2">
                                 Welcome to <span className="dermin-gradient-text font-medium">Dermin</span>

@@ -237,6 +237,8 @@ Tespit {i}:
         user_message: str,
         analysis_data: Dict,
         user_survey_data: Optional[Dict] = None,
+        forum_results: Optional[List[Dict]] = None,
+        expert_analysis: Optional[Dict] = None,
         language: str = "tr"
     ) -> str:
         """
@@ -246,6 +248,8 @@ Tespit {i}:
             user_message: User's question
             analysis_data: Previous analysis results
             user_survey_data: User's survey data
+            forum_results: Related forum discussions and solutions
+            expert_analysis: AI expert analysis results
             language: Response language (tr/en)
         
         Returns:
@@ -262,29 +266,54 @@ Tespit {i}:
                 for i, pred in enumerate(analysis_data["predictions"]):
                     context += f"- {pred.get('class_name', 'Bilinmeyen')}: %{int(pred.get('confidence', 0) * 100)} güvenilirlik\n"
             
+            # Add expert analysis if available
+            expert_context = ""
+            if expert_analysis:
+                expert_context += f"\nUzman AI Analizi:\n"
+                if expert_analysis.get("severity_assessment"):
+                    expert_context += f"- Durum Değerlendirmesi: {expert_analysis['severity_assessment']}\n"
+                if expert_analysis.get("recommendations"):
+                    expert_context += f"- Öneriler: {', '.join(expert_analysis['recommendations'])}\n"
+                if expert_analysis.get("doctor_consultation"):
+                    expert_context += f"- Doktor Önerisi: {expert_analysis['doctor_consultation']}\n"
+            
+            # Add forum results if available
+            forum_context = ""
+            if forum_results:
+                forum_context += f"\nBenzer Durumlar ve Çözümler:\n"
+                for i, forum_result in enumerate(forum_results[:3], 1):  # Limit to 3 results
+                    forum_context += f"{i}. {forum_result.get('title', 'Başlık yok')}\n"
+                    forum_context += f"   Çözüm: {forum_result.get('solution', 'Çözüm belirtilmemiş')}\n"
+                    if forum_result.get('success_rate'):
+                        forum_context += f"   Başarı Oranı: %{forum_result['success_rate']}\n"
+            
             # Format user survey data
             user_context = ""
             if user_survey_data:
                 user_context = f"\nKullanıcı profili:\n{self._format_survey_data(user_survey_data)}\n"
 
-            # Create chat prompt
+            # Create enhanced chat prompt
             prompt = f"""
-Sen uzman bir dermatolog asistanısın. Kullanıcının cilt analizi hakkındaki sorusunu yanıtla.
+Sen uzman bir dermatolog asistanısın. Kullanıcının cilt analizi hakkındaki sorusunu kısa ve net yanıtla.
 
 {context}
+{expert_context}
+{forum_context}
 {user_context}
 
 Kullanıcının sorusu: {user_message}
 
-Lütfen:
-1. Markdown formatında yanıtla
-2. Türkçe olarak yazılan sorulara Türkçe yanıt ver
-3. Bilimsel ama anlaşılır bir dil kullan
-4. Kişiselleştirilmiş öneriler ver
-5. Gerektiğinde doktor kontrolü öner
-6. Maksimum 500 kelime ile sınırla
+YANIT KURALLARI:
+1. MAKSIMUM 200-300 kelime kullan
+2. Kısa, öz ve anlaşılır cevap ver
+3. Gereksiz tekrarlar yapma
+4. Türkçe olarak yazılan sorulara Türkçe yanıt ver
+5. Analiz sonuçlarına odaklan
+6. Önemli noktalarda **kalın** yazı kullan
+7. Gerekiyorsa kısa liste yap
+8. Gerektiğinde doktor kontrolü öner
 
-Yanıtını markdown formatında ver (başlıklar, listeler, **kalın** metin vb. kullan).
+UYARI: Çok uzun açıklamalar yapma, kullanıcı kısa ve net cevap istiyor!
 """
 
             response = self.model.generate_content(prompt)
@@ -297,6 +326,209 @@ Yanıtını markdown formatında ver (başlıklar, listeler, **kalın** metin vb
         except Exception as e:
             print(f"Chat response generation error: {e}")
             return "Teknik bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+
+    def generate_general_chat_response(
+        self,
+        user_message: str,
+        user_survey_data: Optional[Dict] = None,
+        forum_results: Optional[List[Dict]] = None,
+        language: str = "tr"
+    ) -> str:
+        """
+        Generate general chat response without specific analysis context
+        
+        Args:
+            user_message: User's question
+            user_survey_data: User's survey data
+            forum_results: Related forum discussions and solutions
+            language: Response language (tr/en)
+        
+        Returns:
+            AI response to user's question
+        """
+        try:
+            if not self.model:
+                return "Üzgünüm, AI sistemi şu anda kullanılamıyor."
+
+            # Format user survey data
+            user_context = ""
+            if user_survey_data:
+                user_context = f"\nKullanıcı profili:\n{self._format_survey_data(user_survey_data)}\n"
+
+            # Add forum results if available
+            forum_context = ""
+            if forum_results:
+                forum_context += f"\nBenzer Sorular ve Çözümler:\n"
+                for i, forum_result in enumerate(forum_results[:3], 1):  # Limit to 3 results
+                    forum_context += f"{i}. {forum_result.get('title', 'Başlık yok')}\n"
+                    forum_context += f"   Çözüm: {forum_result.get('solution', 'Çözüm belirtilmemiş')}\n"
+                    if forum_result.get('success_rate'):
+                        forum_context += f"   Başarı Oranı: %{forum_result['success_rate']}\n"
+
+            # Create general chat prompt
+            prompt = f"""
+Sen uzman bir dermatolog asistanısın. Kullanıcının cilt sağlığı hakkındaki sorusunu kısa ve net yanıtla.
+
+{user_context}
+{forum_context}
+
+Kullanıcının sorusu: {user_message}
+
+YANIT KURALLARI:
+1. MAKSIMUM 200-300 kelime kullan
+2. Kısa, öz ve anlaşılır cevap ver
+3. Gereksiz tekrarlar yapma
+4. Türkçe olarak yazılan sorulara Türkçe yanıt ver
+5. Bilimsel ama basit dil kullan
+6. Önemli noktalarda **kalın** yazı kullan
+7. Gerekiyorsa kısa liste yap
+8. Ciddi durumlarda doktor kontrolü öner
+9. Sadece cilt sağlığı ile ilgili konularda yardım et
+
+UYARI: Çok uzun açıklamalar yapma, kullanıcı kısa ve net cevap istiyor!
+
+Eğer soru cilt sağlığı ile ilgili değilse, nezakitle cilt sağlığı konularında yardımcı olabileceğini belirt.
+"""
+
+            response = self.model.generate_content(prompt)
+            
+            if response and response.text:
+                return response.text.strip()
+            else:
+                return "Özür dilerim, şu anda bu konuda yardımcı olamıyorum. Lütfen tekrar deneyin."
+                
+        except Exception as e:
+            print(f"General chat response generation error: {e}")
+            return "Teknik bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+
+    def _format_survey_data(self, survey_data: Dict) -> str:
+        """Format survey data for prompt context"""
+        if not survey_data:
+            return "Kullanıcı profili bilgisi yok"
+        
+        formatted = []
+        
+        # Basic info
+        if survey_data.get("age"):
+            formatted.append(f"Yaş: {survey_data['age']}")
+        if survey_data.get("gender"):
+            formatted.append(f"Cinsiyet: {survey_data['gender']}")
+        if survey_data.get("skin_type"):
+            formatted.append(f"Cilt tipi: {survey_data['skin_type']}")
+        
+        # Skin concerns
+        if survey_data.get("skin_concerns"):
+            concerns = ", ".join(survey_data["skin_concerns"])
+            formatted.append(f"Cilt sorunları: {concerns}")
+        
+        # Allergies
+        if survey_data.get("allergies"):
+            allergies = ", ".join(survey_data["allergies"])
+            formatted.append(f"Alerjiler: {allergies}")
+        
+        # Current products
+        if survey_data.get("current_products"):
+            products = ", ".join(survey_data["current_products"])
+            formatted.append(f"Kullandığı ürünler: {products}")
+        
+        return "\n".join(formatted) if formatted else "Kullanıcı profili bilgisi yok"
+
+    def get_forum_results(self, query: str, problem_type: str = None) -> List[Dict]:
+        """
+        Simulate forum results based on query and problem type
+        In production, this would query a real forum database
+        """
+        # Sample forum data based on common skin problems
+        sample_forum_data = {
+            "akne": [
+                {
+                    "title": "Akne tedavisi için doğal yöntemler",
+                    "solution": "Çay ağacı yağı, aloe vera jeli ve düzenli yüz temizliği",
+                    "success_rate": 78,
+                    "user_count": 156
+                },
+                {
+                    "title": "Akne için dermatolog önerisi",
+                    "solution": "Retinoid kremler ve antibiyotik tedavi kombinasyonu",
+                    "success_rate": 85,
+                    "user_count": 203
+                },
+                {
+                    "title": "Akne lekelerini azaltma yöntemleri",
+                    "solution": "Vitamin C serumu ve niasinamid kullanımı",
+                    "success_rate": 67,
+                    "user_count": 98
+                }
+            ],
+            "sivilce": [
+                {
+                    "title": "Sivilce tedavisi evde çözümler",
+                    "solution": "Salisilik asit temizleyici ve nemlendirici kullanımı",
+                    "success_rate": 72,
+                    "user_count": 124
+                },
+                {
+                    "title": "Sivilce izlerini hafifletme",
+                    "solution": "Düzenli peeling ve güneş kremi kullanımı",
+                    "success_rate": 69,
+                    "user_count": 87
+                }
+            ],
+            "kuru_cilt": [
+                {
+                    "title": "Kuru cilt bakımı rutini",
+                    "solution": "Hyaluronik asit serum ve ceramid içeren nemlendirici",
+                    "success_rate": 82,
+                    "user_count": 167
+                },
+                {
+                    "title": "Kışın kuru cilt problemi",
+                    "solution": "Nemlendirici arttırma ve sıcak su kaçınma",
+                    "success_rate": 75,
+                    "user_count": 134
+                }
+            ],
+            "yağlı_cilt": [
+                {
+                    "title": "Yağlı cilt için günlük bakım",
+                    "solution": "Niasinamid serum ve matlaştırıcı nemlendirici",
+                    "success_rate": 77,
+                    "user_count": 145
+                },
+                {
+                    "title": "Yağlı cilt için ürün önerileri",
+                    "solution": "Salisilik asit ve BHA içeren ürünler",
+                    "success_rate": 74,
+                    "user_count": 112
+                }
+            ]
+        }
+        
+        # Try to match problem type or search in query
+        results = []
+        
+        if problem_type:
+            problem_key = problem_type.lower().replace(" ", "_")
+            if problem_key in sample_forum_data:
+                results.extend(sample_forum_data[problem_key])
+        
+        # Search in query for keywords
+        query_lower = query.lower()
+        for key, forum_results in sample_forum_data.items():
+            if key.replace("_", " ") in query_lower or key in query_lower:
+                results.extend(forum_results)
+        
+        # Return unique results, max 3
+        seen_titles = set()
+        unique_results = []
+        for result in results:
+            if result["title"] not in seen_titles:
+                seen_titles.add(result["title"])
+                unique_results.append(result)
+                if len(unique_results) >= 3:
+                    break
+        
+        return unique_results
 
 # Global instance
 gemini_client = GeminiClient()

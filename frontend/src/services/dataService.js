@@ -285,6 +285,160 @@ class DataService {
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
   }
+
+  async getChatHistory(analysisId) {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        throw new Error('No auth token found')
+      }
+
+      const response = await fetch(`${this.baseURL}/api/chat/analysis/${analysisId}/history`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || 'Failed to get chat history')
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Get chat history error:', error)
+      throw error
+    }
+  }
+
+  async generalChat(message) {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        throw new Error('No auth token found')
+      }
+
+      const response = await fetch(`${this.baseURL}/api/chat/general`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          content: message
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || 'General chat request failed')
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('General chat error:', error)
+      throw error
+    }
+  }
+
+  async chatWithAnalysis(analysisId, message, analysisData = null) {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        throw new Error('No auth token found')
+      }
+
+      // If no analysisId provided or it's 'temp', handle differently
+      if (!analysisId || analysisId === 'temp') {
+        // For temporary/demo mode, use general chat with analysis context
+        return await this.sendGeneralMessage(message, analysisData)
+      }
+
+      const response = await fetch(`${this.baseURL}/api/chat/analysis/${analysisId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          content: message,
+          analysis_data: analysisData
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || 'Analysis chat request failed')
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Analysis chat error:', error)
+      throw error
+    }
+  }
+
+  async sendGeneralMessage(message, analysisData = null) {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        throw new Error('Not authenticated')
+      }
+
+      const requestBody = {
+        content: message
+      }
+
+      // Include analysis data if provided (for context in general chat)
+      if (analysisData) {
+        requestBody.analysis_context = analysisData
+      }
+
+      const response = await fetch(`${this.baseURL}/api/chat/general`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(requestBody)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || 'General chat request failed')
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('General chat error:', error)
+      throw error
+    }
+  }
+
+  async getAnalysis(analysisId) {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        throw new Error('No auth token found')
+      }
+
+      const response = await fetch(`${this.baseURL}/api/analyses/${analysisId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || 'Failed to get analysis')
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Get analysis error:', error)
+      throw error
+    }
+  }
 }
 
 // Create singleton instance

@@ -66,7 +66,7 @@ const SkinSurvey = ({ onComplete, userName }) => {
             id: 'name',
             title: `Let's get to know you better. What's your full name?`,
             type: 'text',
-            placeholder: 'İsim Soyisim',
+            placeholder: 'First Name Last Name',
             required: true,
         },
         {

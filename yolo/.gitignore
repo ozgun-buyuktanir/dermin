@@ -1,0 +1,53 @@
+# === YOLO/ML SPECIFIC GITIGNORE ===
+
+# === MACHINE LEARNING ===
+# ML Artifacts and runs
+mlartifacts/
+mlruns/
+runs/
+wandb/
+experiments/
+
+# Model files (keep specific trained models)
+*.pt
+!yolov8n_custom.pt
+!yolov8s_50epochs.pt
+
+# Training outputs
+*.weights
+*.cfg
+*.names
+
+# Data files
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.tiff
+*.gif
+data/
+datasets/
+images/
+labels/
+annotations/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs
+*.log
+training.log
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+
+# OS files
+.DS_Store
+Thumbs.db

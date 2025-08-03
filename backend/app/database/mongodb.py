@@ -36,21 +36,38 @@ class MongoDatabase(DatabaseInterface):
         return str(result.inserted_id)
     
     async def get_user(self, user_id: str) -> Optional[Dict[str, Any]]:
-        """Firebase UID ile kullanıcı getir"""
-        user = await self.database.users.find_one({"firebase_uid": user_id})
+        """User ID ile kullanıcı getir"""
+        from bson import ObjectId
+        
+        try:
+            user = await self.database.users.find_one({"_id": ObjectId(user_id)})
+            if user:
+                user["_id"] = str(user["_id"])
+            return user
+        except:
+            return None
+    
+    async def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        """Email ile kullanıcı getir"""
+        user = await self.database.users.find_one({"email": email})
         if user:
             user["_id"] = str(user["_id"])
         return user
     
     async def update_user(self, user_id: str, update_data: Dict[str, Any]) -> bool:
         """Kullanıcı bilgilerini güncelle"""
+        from bson import ObjectId
+        
         update_data["updated_at"] = datetime.utcnow()
         
-        result = await self.database.users.update_one(
-            {"firebase_uid": user_id},
-            {"$set": update_data}
-        )
-        return result.modified_count > 0
+        try:
+            result = await self.database.users.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$set": update_data}
+            )
+            return result.modified_count > 0
+        except:
+            return False
     
     async def create_analysis(self, analysis_data: Dict[str, Any]) -> str:
         """Yeni analiz kaydet"""
@@ -99,3 +116,26 @@ class MongoDatabase(DatabaseInterface):
             return result.modified_count > 0
         except:
             return False
+
+    async def create_survey(self, survey_data: Dict[str, Any]) -> str:
+        """Survey cevabı oluştur"""
+        survey_data["completed_at"] = datetime.utcnow()
+        
+        result = await self.database.surveys.insert_one(survey_data)
+        return str(result.inserted_id)
+    
+    async def get_user_survey(self, user_email: str) -> Optional[Dict[str, Any]]:
+        """Kullanıcının survey cevabını getir"""
+        survey = await self.database.surveys.find_one({"user_email": user_email})
+        if survey:
+            survey["_id"] = str(survey["_id"])
+        return survey
+    
+    async def update_survey(self, user_email: str, survey_data: Dict[str, Any]) -> bool:
+        """Survey cevabını güncelle"""
+        result = await self.database.surveys.update_one(
+            {"user_email": user_email},
+            {"$set": survey_data},
+            upsert=True
+        )
+        return result.acknowledged

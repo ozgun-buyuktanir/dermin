@@ -63,19 +63,29 @@ class DataService {
     if (!this.consentGiven) return
 
     try {
+      // Get auth token
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        throw new Error('Not authenticated')
+      }
+
       const payload = {
         ...analysisData,
-        userId: this.getUserId(),
         timestamp: new Date().toISOString()
       }
 
-      const response = await fetch(`${this.baseURL}/api/analysis/save`, {
+      const response = await fetch(`${this.baseURL}/api/analyses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       })
+
+      if (!response.ok) {
+        throw new Error('Failed to save analysis')
+      }
 
       return await response.json()
     } catch (error) {
@@ -89,8 +99,21 @@ class DataService {
     if (!this.consentGiven) return []
 
     try {
-      const userId = this.getUserId()
-      const response = await fetch(`${this.baseURL}/api/analysis/history/${userId}`)
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        return []
+      }
+
+      const response = await fetch(`${this.baseURL}/api/analyses`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch analysis history')
+      }
+      
       return await response.json()
     } catch (error) {
       console.error('Failed to fetch analysis history:', error)

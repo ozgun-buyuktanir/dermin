@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer
 from contextlib import asynccontextmanager
 import os
 from dotenv import load_dotenv
@@ -9,8 +8,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from app.database import db
-from app.models.user import User, UserCreate, UserUpdate
+from app.models.user import User, UserCreate, UserUpdate, UserLogin, Token
 from app.models.analysis import Analysis, AnalysisCreate, AnalysisUpdate, AnalysisStatus
+from app.models.survey import SurveyResponse, Survey
+from app.auth import (
+    verify_password, 
+    get_password_hash, 
+    create_access_token,
+    get_current_user
+)
 
 # Database lifecycle
 @asynccontextmanager
@@ -32,14 +38,11 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173").split(","),
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "*"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
-
-# Security
-security = HTTPBearer()
 
 @app.get("/")
 async def root():
@@ -47,49 +50,94 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": "2025-06-30T12:00:00Z"}
+    return {"status": "healthy", "timestamp": "2025-07-28T12:00:00Z"}
+
+# Authentication endpoints
+@app.post("/api/auth/check-user")
+async def check_user_exists(email_data: dict):
+    """Check if user exists by email"""
+    email = email_data.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+    
+    user = await db.get_user_by_email(email)
+    return {"exists": user is not None}
+
+@app.post("/api/auth/register", response_model=Token)
+async def register(user_data: UserCreate):
+    """Yeni kullanıcı kaydı"""
+    # Check if user already exists
+    existing_user = await db.get_user_by_email(user_data.email)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="User with this email already exists")
+    
+    # Hash password
+    hashed_password = get_password_hash(user_data.password)
+    
+    # Create user
+    user_dict = user_data.dict()
+    user_dict["password_hash"] = hashed_password
+    del user_dict["password"]  # Remove plain password
+    
+    user_id = await db.create_user(user_dict)
+    
+    # Create access token
+    access_token = create_access_token(data={"sub": user_id, "email": user_data.email})
+    
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/api/auth/login", response_model=Token)
+async def login(user_credentials: UserLogin):
+    """Kullanıcı girişi"""
+    # Get user by email
+    user = await db.get_user_by_email(user_credentials.email)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Verify password
+    if not verify_password(user_credentials.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Create access token
+    access_token = create_access_token(data={"sub": user["_id"], "email": user["email"]})
+    
+    return {"access_token": access_token, "token_type": "bearer"}
 
 # User endpoints
-@app.post("/api/users", response_model=User)
-async def create_user(user_data: UserCreate):
-    """Yeni kullanıcı oluştur"""
-    # Check if user already exists
-    existing_user = await db.get_user(user_data.firebase_uid)
-    if existing_user:
-        raise HTTPException(status_code=400, detail="User already exists")
-    
-    user_id = await db.create_user(user_data.dict())
-    user = await db.get_user(user_data.firebase_uid)
-    user["id"] = user["_id"]
-    return User(**user)
-
-@app.get("/api/users/{user_id}", response_model=User)
-async def get_user(user_id: str):
-    """Kullanıcı bilgilerini getir"""
-    user = await db.get_user(user_id)
+@app.get("/api/users/me", response_model=User)
+async def get_current_user_info(current_user_id: str = Depends(get_current_user)):
+    """Mevcut kullanıcı bilgilerini getir"""
+    user = await db.get_user(current_user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
     user["id"] = user["_id"]
     return User(**user)
 
-@app.put("/api/users/{user_id}", response_model=User)
-async def update_user(user_id: str, update_data: UserUpdate):
-    """Kullanıcı bilgilerini güncelle"""
-    success = await db.update_user(user_id, update_data.dict(exclude_unset=True))
+@app.put("/api/users/me", response_model=User)
+async def update_current_user(
+    update_data: UserUpdate, 
+    current_user_id: str = Depends(get_current_user)
+):
+    """Mevcut kullanıcı bilgilerini güncelle"""
+    success = await db.update_user(current_user_id, update_data.dict(exclude_unset=True))
     if not success:
         raise HTTPException(status_code=404, detail="User not found")
     
-    user = await db.get_user(user_id)
+    user = await db.get_user(current_user_id)
     user["id"] = user["_id"]
     return User(**user)
 
 # Analysis endpoints
 @app.post("/api/analyses", response_model=Analysis)
-async def create_analysis(analysis_data: AnalysisCreate):
+async def create_analysis(
+    analysis_data: AnalysisCreate,
+    current_user_id: str = Depends(get_current_user)
+):
     """Yeni analiz oluştur"""
     # Create analysis record
     analysis_dict = analysis_data.dict()
+    analysis_dict["user_id"] = current_user_id
     analysis_dict["status"] = AnalysisStatus.PENDING
     
     analysis_id = await db.create_analysis(analysis_dict)
@@ -100,10 +148,13 @@ async def create_analysis(analysis_data: AnalysisCreate):
     
     return Analysis(**analysis)
 
-@app.get("/api/users/{user_id}/analyses")
-async def get_user_analyses(user_id: str, limit: int = 10):
+@app.get("/api/analyses")
+async def get_user_analyses(
+    current_user_id: str = Depends(get_current_user),
+    limit: int = 10
+):
     """Kullanıcının analizlerini getir"""
-    analyses = await db.get_user_analyses(user_id, limit)
+    analyses = await db.get_user_analyses(current_user_id, limit)
     for analysis in analyses:
         analysis["id"] = analysis["_id"]
     
@@ -137,3 +188,40 @@ async def upload_image(file: UploadFile = File(...)):
         "content_type": file.content_type,
         "size": file.size
     }
+
+# Survey endpoints
+@app.post("/api/surveys")
+async def create_survey(survey_data: SurveyResponse, current_user: User = Depends(get_current_user)):
+    """Survey cevabı kaydet"""
+    try:
+        # Convert to dict and add user info
+        survey_dict = survey_data.model_dump()
+        survey_dict["user_email"] = current_user.email
+        
+        # Remove None values
+        survey_dict = {k: v for k, v in survey_dict.items() if v is not None}
+        
+        survey_id = await db.create_survey(survey_dict)
+        
+        return {
+            "message": "Survey saved successfully",
+            "survey_id": survey_id
+        }
+    except Exception as e:
+        print(f"Survey creation error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to save survey")
+
+@app.get("/api/surveys/me")
+async def get_my_survey(current_user: User = Depends(get_current_user)):
+    """Kullanıcının survey cevabını getir"""
+    try:
+        survey = await db.get_user_survey(current_user.email)
+        if not survey:
+            raise HTTPException(status_code=404, detail="Survey not found")
+        
+        return survey
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Survey fetch error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch survey")

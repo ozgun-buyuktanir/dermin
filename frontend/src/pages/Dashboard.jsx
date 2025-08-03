@@ -1,93 +1,82 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { signOut, updateProfile } from 'firebase/auth'
-import { auth } from '../services/firebase'
+import authService from '../services/authService'
 import TopBar from '../components/TopBar'
 import SkinAnalysisArea from '../components/SkinAnalysisArea'
 import AnalysisHistory from '../components/AnalysisHistory'
-import IntroPage from '../components/IntroPage'
+import SkinSurvey from '../components/SkinSurvey'
 
 function Dashboard() {
     const navigate = useNavigate()
     const [currentUser, setCurrentUser] = useState(null)
     const [analyses, setAnalyses] = useState([])
     const [activeAnalysisId, setActiveAnalysisId] = useState('')
-    const [showIntro, setShowIntro] = useState(false)
     const [userName, setUserName] = useState('')
     const [sidebarOpen, setSidebarOpen] = useState(true)
+    const [showSurvey, setShowSurvey] = useState(false)
 
     useEffect(() => {
-        // Auth state değişikliklerini dinle
-        const unsubscribe = auth.onAuthStateChanged((user) => {
-            if (user && user.emailVerified) {
-                setCurrentUser(user)
-                
-                // Check if user has seen intro - user-specific key
-                const userIntroKey = `dermin_intro_completed_${user.uid}`
-                const hasSeenIntro = localStorage.getItem(userIntroKey)
-                
-                // Get user name from Firebase profile or localStorage with user-specific key
-                const userNameKey = `dermin_user_name_${user.uid}`
-                const savedUserName = localStorage.getItem(userNameKey) || user.displayName
-                
-                if (!hasSeenIntro) {
-                    setShowIntro(true)
-                } else if (savedUserName) {
-                    setUserName(savedUserName)
+        // Check auth state with backend
+        const checkAuth = async () => {
+            if (authService.isAuthenticated()) {
+                try {
+                    const user = await authService.getCurrentUser()
+                    if (user) {
+                        setCurrentUser(user)
+                        
+                        // Get user name from user profile or localStorage with user-specific key
+                        const userNameKey = `dermin_user_name_${user.email}`
+                        const savedUserName = localStorage.getItem(userNameKey) || user.display_name
+                        
+                        if (savedUserName) {
+                            setUserName(savedUserName)
+                        }
+
+                        // Check if user has completed survey
+                        const surveyCompleted = localStorage.getItem('dermin_survey_completed')
+                        if (!surveyCompleted) {
+                            setShowSurvey(true)
+                        }
+                    } else {
+                        navigate('/login')
+                    }
+                } catch (error) {
+                    console.error('Auth check error:', error)
+                    navigate('/login')
                 }
             } else {
-                // Kullanıcı giriş yapmamış veya email verify edilmemiş
+                // User not authenticated
                 navigate('/login')
             }
-        })
+        }
 
-        return () => unsubscribe()
+        checkAuth()
     }, [navigate])
 
     const handleLogout = async () => {
         try {
-            await signOut(auth)
+            authService.logout()
             navigate('/login')
         } catch (error) {
             console.error('Logout error:', error)
         }
     }
 
-    const handleIntroComplete = async (name) => {
-        if (currentUser) {
-            const userIntroKey = `dermin_intro_completed_${currentUser.uid}`
-            const userNameKey = `dermin_user_name_${currentUser.uid}`
-            
-            try {
-                // Update Firebase profile
-                await updateProfile(currentUser, {
-                    displayName: name
-                });
-                
-                setUserName(name)
-                setShowIntro(false)
-                localStorage.setItem(userIntroKey, 'true')
-                localStorage.setItem(userNameKey, name)
-            } catch (error) {
-                console.error('Error updating profile:', error)
-                // Fallback to localStorage only
-                setUserName(name)
-                setShowIntro(false)
-                localStorage.setItem(userIntroKey, 'true')
-                localStorage.setItem(userNameKey, name)
-            }
-        }
+    const handleSurveyComplete = (surveyData) => {
+        console.log('Survey completed:', surveyData)
+        setShowSurvey(false)
+        // Could show a success message or update user profile
     }
 
     const handleUserNameChange = async (newName) => {
         if (currentUser) {
-            const userNameKey = `dermin_user_name_${currentUser.uid}`
+            const userNameKey = `dermin_user_name_${currentUser.email}`
             
             try {
-                // Update Firebase profile
-                await updateProfile(currentUser, {
-                    displayName: newName
-                });
+                // Update backend profile
+                await authService.updateProfile({
+                    display_name: newName
+                })
                 
                 setUserName(newName)
                 localStorage.setItem(userNameKey, newName)
@@ -125,8 +114,8 @@ function Dashboard() {
         )
     }
 
-    if (showIntro) {
-        return <IntroPage onComplete={handleIntroComplete} />
+    if (showSurvey) {
+        return <SkinSurvey onComplete={handleSurveyComplete} userName={userName} />
     }
 
     return (

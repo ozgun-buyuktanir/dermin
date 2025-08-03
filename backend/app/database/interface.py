@@ -22,6 +22,10 @@ class DatabaseInterface(ABC):
         pass
     
     @abstractmethod
+    async def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        pass
+    
+    @abstractmethod
     async def update_user(self, user_id: str, update_data: Dict[str, Any]) -> bool:
         pass
     

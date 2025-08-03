@@ -1,16 +1,90 @@
-@import "tailwindcss";
+/* ✅ index.css (tamamen güncellenmiş) */
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* DARK MODE KALDIRILDI */
+  color: #213547;
+  background-color: #f9fafb; /* açık gri arka plan */
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.animate-fade-in {
-  animation: fade-in 0.5s ease-out;
+a {
+  font-weight: 500;
+  color: #2563eb; /* mavi */
+  text-decoration: inherit;
+}
+a:hover {
+  color: #1d4ed8;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #f9fafb; /* açık gri */
+  /* display:flex; place-items:center; ❌ SİLİNDİ */
+}
+
+h1 {
+  font-size: 2.5rem;
+  line-height: 1.2;
+  color: #111827;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #2563eb; /* mavi */
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+button:hover {
+  background-color: #1d4ed8;
+}
+
+/* Chatbot özel container */
+.chatbot-container {
+  max-width: 900px;
+  margin-left: 2rem; /* sola yaslama */
+  margin-top: 2rem;
+}
+
+.chatbot-box {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 16px;
+}
+
+/* Kullanıcı & bot mesajları */
+.user-message {
+  background: #dbeafe; /* açık mavi */
+  align-self: flex-end;
+  text-align: right;
+  padding: 8px 12px;
+  border-radius: 12px;
+  margin: 6px 0;
+  max-width: 75%;
+}
+
+.bot-message {
+  background: #e2e8f0; /* açık gri */
+  align-self: flex-start;
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 12px;
+  margin: 6px 0;
+  max-width: 75%;
 }

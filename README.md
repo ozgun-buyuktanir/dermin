@@ -415,9 +415,30 @@ The project was estimated to require **900 points** of total effort, distributed
 
 
 
+
 </details>
+<details>
+<summary>📸 Website Screenshots </summary>
+
+![Website1](Project_Management/sprint_3/Website_final/website1.png)
+![Website2](Project_Management/sprint_3/Website_final/website2.png)
+![Website3](Project_Management/sprint_3/Website_final/website3.png)
+![Website4](Project_Management/sprint_3/Website_final/website4.png)
+![Website5](Project_Management/sprint_3/Website_final/website5.png)
+![Website6](Project_Management/sprint_3/Website_final/website6.png)
+![Website7](Project_Management/sprint_3/Website_final/website7.png)
+![Website8](Project_Management/sprint_3/Website_final/website8.png)
 
 
+
+
+
+</details>
+<details><summary>🎥 Promotional Video</summary>
+
+[Promotional Video](https://www.youtube.com/watch?v=xZPvc1ZsMcI)
+
+</details>
 <details><summary>📝 Sprint Notes</summary>
 
 ## 📝 Sprint Notes
@@ -490,4 +511,8 @@ The project was estimated to require **900 points** of total effort, distributed
 ---
 
 </details>
-</details>
+<details><summary>🧮 Data Analysis</summary>
+
+📘 [View the data analysis](Project_Management/sprint_3/Data_Analysis/dermin_veri_analizi.ipynb)
+
+</details> 

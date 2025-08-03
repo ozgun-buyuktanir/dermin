@@ -2,7 +2,7 @@ import { Mail, Lock, Eye, EyeClosed, CheckCircle, XCircle, AlertCircle, AlertTri
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import authService from '../services/authService'
-import logo from '../../logo.svg'
+import logo from '../../dermin_logo.png';
 
 function Login() {
     const navigate = useNavigate()
@@ -129,30 +129,45 @@ function Login() {
             .glow-effect:hover {
                 box-shadow: 0 0 30px rgba(119, 141, 169, 0.5);
             }
+            /* Enhanced animations */
+            @keyframes fade-in {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in {
+                animation: fade-in 0.8s ease-out;
+            }
             /* Custom scrollbar for privacy modal */
             .custom-scrollbar::-webkit-scrollbar {
-                width: 8px;
+                width: 10px;
             }
             .custom-scrollbar::-webkit-scrollbar-track {
-                background: #0D1B2A;
-                border-radius: 6px;
+                background: rgba(13, 27, 42, 0.8);
+                border-radius: 8px;
+                border: 1px solid rgba(119, 141, 169, 0.1);
             }
             .custom-scrollbar::-webkit-scrollbar-thumb {
                 background: linear-gradient(135deg, #778DA9, #90BE6D);
-                border-radius: 6px;
-                border: 1px solid #1B263B;
+                border-radius: 8px;
+                border: 2px solid rgba(27, 38, 59, 0.5);
+                transition: all 0.3s ease;
             }
             .custom-scrollbar::-webkit-scrollbar-thumb:hover {
                 background: linear-gradient(135deg, #90BE6D, #778DA9);
-                box-shadow: 0 0 10px rgba(119, 141, 169, 0.3);
+                box-shadow: 0 0 15px rgba(119, 141, 169, 0.4);
+                border: 2px solid rgba(144, 190, 109, 0.3);
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:active {
+                background: linear-gradient(135deg, #778DA9, #90BE6D);
+                box-shadow: 0 0 20px rgba(119, 141, 169, 0.6);
             }
             .custom-scrollbar::-webkit-scrollbar-corner {
-                background: #0D1B2A;
+                background: rgba(13, 27, 42, 0.8);
             }
             /* Firefox scrollbar styling */
             .custom-scrollbar {
                 scrollbar-width: thin;
-                scrollbar-color: #778DA9 #0D1B2A;
+                scrollbar-color: #778DA9 rgba(13, 27, 42, 0.8);
             }
         `
         if (!document.head.querySelector('#login-styles')) {
@@ -660,65 +675,128 @@ function Login() {
 
                 {/* Right Side - Animated Intro */}
                 <div className="w-1/2 flex items-center justify-center p-8 relative z-10">
+                    {/* Enhanced animated background elements */}
+                    <div className="absolute inset-0 opacity-15">
+                        <div className="absolute top-20 left-20 w-20 h-20 bg-gradient-to-r from-[#778DA9]/30 to-[#90BE6D]/30 rounded-full blur-xl animate-pulse"></div>
+                        <div className="absolute bottom-32 right-16 w-24 h-24 bg-gradient-to-r from-[#90BE6D]/30 to-[#778DA9]/30 rounded-full blur-xl animate-pulse delay-1000"></div>
+                        <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-gradient-to-r from-[#778DA9]/25 to-[#90BE6D]/25 rounded-full blur-xl animate-pulse delay-500"></div>
+                        <div className="absolute bottom-1/4 right-1/3 w-18 h-18 bg-gradient-to-r from-[#90BE6D]/25 to-[#778DA9]/25 rounded-full blur-xl animate-pulse delay-700"></div>
+                    </div>
+
                     <div className="text-center max-w-lg relative z-10 w-full">
-                        <div className="mb-8">
+                        {/* Enhanced icon container with more effects */}
+                        <div className="mb-8 relative">
                             {(() => {
                                 const slide = introSlides[currentSlide]
                                 const IconComponent = slide.icon
                                 return (
-                                    <div className={`w-24 h-24 bg-gradient-to-r ${slide.gradient} rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl transform transition-all duration-1000 ease-out hover:scale-105`}>
-                                        <IconComponent className="w-12 h-12 text-[#0D1B2A] transition-transform duration-500" />
+                                    <div className="relative group">
+                                        {/* Glowing background ring */}
+                                        <div className={`absolute inset-0 w-24 h-24 bg-gradient-to-r ${slide.gradient} rounded-3xl mx-auto blur-md opacity-75 group-hover:opacity-100 transition-all duration-1000 animate-pulse`}></div>
+                                        
+                                        {/* Main icon container */}
+                                        <div className={`relative w-24 h-24 bg-gradient-to-r ${slide.gradient} rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl transform transition-all duration-1000 ease-out group-hover:shadow-[0_0_40px_rgba(119,141,169,0.5)]`}>
+                                            <IconComponent className="w-12 h-12 text-[#0D1B2A] transition-all duration-500" />
+                                        </div>
+                                        
+                                        {/* Floating particles around icon */}
+                                        <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-[#90BE6D] rounded-full animate-ping opacity-60"></div>
+                                        <div className="absolute bottom-2 left-2 w-1 h-1 bg-[#778DA9] rounded-full animate-ping opacity-50 delay-500"></div>
+                                        <div className="absolute top-1/2 right-0 w-0.5 h-0.5 bg-[#90BE6D] rounded-full animate-ping opacity-40 delay-1000"></div>
                                     </div>
                                 )
                             })()}
                         </div>
 
-                        <div className="min-h-[180px] flex flex-col items-center justify-center">
-                            <div className="text-[#E0E1DD] text-xl leading-relaxed mb-4 font-light">
-                                {(() => {
-                                    const slide = introSlides[currentSlide]
-                                    const textBeforeHighlight = slide.text
-                                    const highlightText = slide.highlight
-                                    const textAfterHighlight = slide.suffix
+                        {/* Enhanced text display area */}
+                        <div className="min-h-[200px] flex flex-col items-center justify-center relative">
+                            {/* Subtle decorative lines */}
+                            <div className="absolute -top-4 left-1/4 w-16 h-px bg-gradient-to-r from-transparent via-[#90BE6D]/60 to-transparent"></div>
+                            <div className="absolute -bottom-4 right-1/4 w-20 h-px bg-gradient-to-r from-transparent via-[#90BE6D]/60 to-transparent"></div>
+                            <div className="absolute top-1/2 -left-8 w-12 h-px bg-gradient-to-r from-transparent via-[#90BE6D]/40 to-transparent transform rotate-90"></div>
+                            <div className="absolute top-1/2 -right-8 w-12 h-px bg-gradient-to-r from-transparent via-[#90BE6D]/40 to-transparent transform rotate-90"></div>
+                            
+                            {/* Main animated text - no background glow */}
+                            <div className="text-[#E0E1DD] text-2xl leading-relaxed mb-6 font-light relative">
+                                <div className="relative p-4">
+                                    {(() => {
+                                        const slide = introSlides[currentSlide]
+                                        const textBeforeHighlight = slide.text
+                                        const highlightText = slide.highlight
+                                        const textAfterHighlight = slide.suffix
 
-                                    const currentIndex = displayedText.length
-                                    const highlightStartIndex = textBeforeHighlight.length
-                                    const highlightEndIndex = highlightStartIndex + highlightText.length
+                                        const currentIndex = displayedText.length
+                                        const highlightStartIndex = textBeforeHighlight.length
+                                        const highlightEndIndex = highlightStartIndex + highlightText.length
 
-                                    return (
-                                        <span>
-                                            {displayedText.slice(0, highlightStartIndex)}
-                                            {currentIndex > highlightStartIndex && (
-                                                <span className={`font-semibold bg-gradient-to-r ${slide.gradient} bg-clip-text text-transparent`}>
-                                                    {displayedText.slice(highlightStartIndex, Math.min(currentIndex, highlightEndIndex))}
-                                                </span>
-                                            )}
-                                            {currentIndex > highlightEndIndex && (
-                                                <span>{displayedText.slice(highlightEndIndex)}</span>
-                                            )}
-                                            {isTyping && <span className="animate-pulse text-[#90BE6D]">|</span>}
+                                        return (
+                                            <span>
+                                                {displayedText.slice(0, highlightStartIndex)}
+                                                {currentIndex > highlightStartIndex && (
+                                                    <span className={`font-bold bg-gradient-to-r ${slide.gradient} bg-clip-text text-transparent`}>
+                                                        {displayedText.slice(highlightStartIndex, Math.min(currentIndex, highlightEndIndex))}
+                                                    </span>
+                                                )}
+                                                {currentIndex > highlightEndIndex && (
+                                                    <span>{displayedText.slice(highlightEndIndex)}</span>
+                                                )}
+                                                {isTyping && <span className="animate-pulse text-[#90BE6D] text-3xl font-bold ml-1">|</span>}
+                                            </span>
+                                        )
+                                    })()}
+                                </div>
+                            </div>
+
+                            {/* Description - only show when typing is complete */}
+                            {!isTyping && (
+                                <div className="relative animate-fade-in">
+                                    <div className="text-[#E0E1DD]/80 text-sm leading-relaxed max-w-md text-center font-light p-4 border border-[#778DA9]/20 rounded-xl backdrop-blur-sm bg-[#1B263B]/30">
+                                        <span className="block">
+                                            Transform your skincare journey with cutting-edge AI technology designed for precision and personalized care.
                                         </span>
-                                    )
-                                })()}
-                            </div>
-
-                            {/* Description text */}
-                            <div className="text-[#E0E1DD]/70 text-xs leading-relaxed max-w-md text-center font-light">
-                                {!isTyping && introSlides[currentSlide].description}
-                            </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
-                        <div className="flex justify-center space-x-2 mt-6">
+                        {/* Enhanced slide indicators */}
+                        <div className="flex justify-center space-x-3 mt-8">
                             {introSlides.map((_, index) => (
                                 <div
                                     key={index}
-                                    className={`h-1.5 rounded-full transition-all duration-500 cursor-pointer ${index === currentSlide
-                                        ? 'w-6 bg-gradient-to-r from-[#778DA9] to-[#90BE6D]'
-                                        : 'w-1.5 bg-[#778DA9]/30 hover:bg-[#778DA9]/50'
-                                        }`}
+                                    className={`relative transition-all duration-500 cursor-pointer group ${
+                                        index === currentSlide
+                                            ? 'w-8 h-2 bg-gradient-to-r from-[#778DA9] to-[#90BE6D] rounded-full'
+                                            : 'w-2 h-2 bg-[#778DA9]/40 hover:bg-[#778DA9]/60 rounded-full'
+                                    }`}
                                     onClick={() => setCurrentSlide(index)}
-                                />
+                                >
+                                    {/* Active indicator glow effect */}
+                                    {index === currentSlide && (
+                                        <div className="absolute inset-0 bg-gradient-to-r from-[#778DA9] to-[#90BE6D] rounded-full blur-sm opacity-75 animate-pulse"></div>
+                                    )}
+                                    
+                                    {/* Hover effect for inactive indicators */}
+                                    <div className="absolute inset-0 bg-gradient-to-r from-[#778DA9]/20 to-[#90BE6D]/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
+                                </div>
                             ))}
+                        </div>
+
+                        {/* Floating action elements */}
+                        <div className="absolute bottom-8 right-8 opacity-40">
+                            <div className="flex flex-col space-y-2">
+                                <div className="w-0.5 h-0.5 bg-[#90BE6D] rounded-full animate-ping delay-300"></div>
+                                <div className="w-1 h-1 bg-[#778DA9] rounded-full animate-ping delay-700"></div>
+                                <div className="w-0.5 h-0.5 bg-[#90BE6D] rounded-full animate-ping delay-1000"></div>
+                            </div>
+                        </div>
+
+                        {/* Floating elements on the left */}
+                        <div className="absolute top-12 left-8 opacity-30">
+                            <div className="flex space-x-2">
+                                <div className="w-1 h-1 bg-[#778DA9] rounded-full animate-bounce delay-500"></div>
+                                <div className="w-0.5 h-0.5 bg-[#90BE6D] rounded-full animate-bounce delay-700"></div>
+                            </div>
                         </div>
                     </div>
                 </div>

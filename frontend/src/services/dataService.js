@@ -153,6 +153,118 @@ class DataService {
     localStorage.setItem('dermin_user_preferences', JSON.stringify(preferences))
   }
 
+  // Survey methods
+  async submitSurvey(surveyData) {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        throw new Error('Not authenticated')
+      }
+
+      const response = await fetch(`${this.baseURL}/api/surveys`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(surveyData)
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.detail || 'Failed to submit survey')
+      }
+
+      const result = await response.json()
+      
+      // Track survey completion
+      this.trackEvent('survey_completed', {
+        surveyData: surveyData
+      })
+
+      return result
+    } catch (error) {
+      console.error('Failed to submit survey:', error)
+      throw error
+    }
+  }
+
+  async getSurveyStatus() {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        return { survey_completed: false }
+      }
+
+      const response = await fetch(`${this.baseURL}/api/surveys/status`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        return { survey_completed: false }
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Failed to check survey status:', error)
+      return { survey_completed: false }
+    }
+  }
+
+  async getMySurvey() {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        throw new Error('Not authenticated')
+      }
+
+      const response = await fetch(`${this.baseURL}/api/surveys/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null
+        }
+        throw new Error('Failed to fetch survey')
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Failed to fetch survey:', error)
+      return null
+    }
+  }
+
+  async getUserAnalyses(limit = 50) {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        throw new Error('Not authenticated')
+      }
+
+      const response = await fetch(`${this.baseURL}/api/analyses?limit=${limit}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch analyses')
+      }
+
+      const data = await response.json()
+      return data.analyses || []
+    } catch (error) {
+      console.error('Failed to fetch user analyses:', error)
+      return []
+    }
+  }
+
   // Export user data (GDPR compliance)
   exportUserData() {
     const userData = {

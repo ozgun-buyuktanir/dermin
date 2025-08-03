@@ -117,25 +117,18 @@ class MongoDatabase(DatabaseInterface):
         except:
             return False
 
-    async def create_survey(self, survey_data: Dict[str, Any]) -> str:
-        """Survey cevabı oluştur"""
-        survey_data["completed_at"] = datetime.utcnow()
+    async def create_survey_result(self, survey_data: Dict[str, Any]) -> str:
+        """Survey sonucunu forumresult koleksiyonuna kaydet"""
+        survey_data["submitted_at"] = datetime.utcnow()
         
-        result = await self.database.surveys.insert_one(survey_data)
+        result = await self.database.forumresult.insert_one(survey_data)
         return str(result.inserted_id)
     
-    async def get_user_survey(self, user_email: str) -> Optional[Dict[str, Any]]:
-        """Kullanıcının survey cevabını getir"""
-        survey = await self.database.surveys.find_one({"user_email": user_email})
-        if survey:
-            survey["_id"] = str(survey["_id"])
-        return survey
-    
-    async def update_survey(self, user_email: str, survey_data: Dict[str, Any]) -> bool:
-        """Survey cevabını güncelle"""
-        result = await self.database.surveys.update_one(
-            {"user_email": user_email},
-            {"$set": survey_data},
-            upsert=True
-        )
-        return result.acknowledged
+    async def get_survey_results(self, user_id: str) -> List[Dict[str, Any]]:
+        """Kullanıcının survey sonuçlarını getir"""
+        cursor = self.database.forumresult.find({"user_id": user_id})
+        results = []
+        async for doc in cursor:
+            doc["_id"] = str(doc["_id"])
+            results.append(doc)
+        return results

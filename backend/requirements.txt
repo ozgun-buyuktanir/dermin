@@ -13,3 +13,12 @@ boto3>=1.34.0
 pydantic==2.5.0
 email-validator==2.1.0
 bcrypt==4.0.1
+
+# AI/LLM Dependencies
+google-generativeai>=0.8.0
+torch>=2.0.0
+torchvision>=0.15.0
+ultralytics>=8.0.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+seaborn>=0.12.0

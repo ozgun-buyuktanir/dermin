@@ -1,10 +1,14 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Upload, Camera, Image as ImageIcon, ArrowRight, FileChartColumn, Shield, Clock } from 'lucide-react'
 
 const SkinAnalysisArea = ({ userName }) => {
     const [uploadedImage, setUploadedImage] = useState(null)
+    const [uploadedFile, setUploadedFile] = useState(null)
     const [isAnalyzing, setIsAnalyzing] = useState(false)
     const [dragActive, setDragActive] = useState(false)
+    const [analysisProgress, setAnalysisProgress] = useState(0)
+    const navigate = useNavigate()
 
     const handleDrop = (e) => {
         e.preventDefault()
@@ -18,13 +22,82 @@ const SkinAnalysisArea = ({ userName }) => {
             const reader = new FileReader()
             reader.onload = (e) => setUploadedImage(e.target.result)
             reader.readAsDataURL(file)
+            setUploadedFile(file)
         }
     }
 
-    const handleAnalyze = () => {
+    const handleAnalyze = async () => {
+        if (!uploadedFile) {
+            alert('Please select an image first')
+            return
+        }
+
         setIsAnalyzing(true)
-        // API call will be here
-        setTimeout(() => setIsAnalyzing(false), 3000)
+        setAnalysisProgress(0)
+
+        // Progress simulation
+        const progressInterval = setInterval(() => {
+            setAnalysisProgress(prev => {
+                if (prev >= 90) return prev
+                return prev + Math.random() * 10
+            })
+        }, 200)
+
+        try {
+            const token = localStorage.getItem('auth_token')
+            if (!token) {
+                navigate('/login')
+                return
+            }
+
+            // Create FormData for file upload
+            const formData = new FormData()
+            formData.append('file', uploadedFile)
+
+            // API call to analyze skin
+            const response = await fetch('http://localhost:8000/api/analyze-skin', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            })
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`)
+            }
+
+            const result = await response.json()
+            
+            console.log('🔍 API Response:', result)
+            
+            clearInterval(progressInterval)
+            setAnalysisProgress(100)
+
+            // Show completion message
+            setTimeout(() => {
+                if (result.analysis_id) {
+                    console.log('✅ Redirecting to results:', result.analysis_id)
+                    // Save analysis ID to localStorage for chat functionality
+                    localStorage.setItem('current_analysis_id', result.analysis_id)
+                    // Redirect to results page
+                    navigate(`/results/${result.analysis_id}`)
+                } else {
+                    console.error('❌ No analysis ID received:', result)
+                    alert('Analysis completed but no results available')
+                }
+            }, 1000)
+
+        } catch (error) {
+            clearInterval(progressInterval)
+            console.error('Analysis error:', error)
+            alert('Analysis failed: ' + error.message)
+        } finally {
+            setTimeout(() => {
+                setIsAnalyzing(false)
+                setAnalysisProgress(0)
+            }, 2000)
+        }
     }
 
     return (
@@ -119,7 +192,7 @@ const SkinAnalysisArea = ({ userName }) => {
                             </div>
 
                             {/* Analysis button */}
-                            <div className="text-center">
+                            <div className="text-center space-y-4">
                                 <button
                                     onClick={handleAnalyze}
                                     disabled={isAnalyzing}
@@ -133,11 +206,31 @@ const SkinAnalysisArea = ({ userName }) => {
                                     ) : (
                                         <>
                                             <FileChartColumn className="w-5 h-5" />
-                                            Analyze My Skin
+                                            Start Analyzing
                                             <ArrowRight className="w-5 h-5" />
                                         </>
                                     )}
                                 </button>
+
+                                {/* Progress bar */}
+                                {isAnalyzing && (
+                                    <div className="max-w-md mx-auto">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-sm text-gray-600">
+                                                {analysisProgress < 100 ? 'Analyzing...' : 'Analysis complete! Redirecting to results...'}
+                                            </span>
+                                            <span className="text-sm text-gray-500">
+                                                {Math.round(analysisProgress)}%
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                            <div 
+                                                className="bg-gradient-to-r from-gray-600 to-gray-800 h-2 rounded-full transition-all duration-300"
+                                                style={{ width: `${analysisProgress}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

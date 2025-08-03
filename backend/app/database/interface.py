@@ -44,3 +44,11 @@ class DatabaseInterface(ABC):
     @abstractmethod
     async def update_analysis(self, analysis_id: str, update_data: Dict[str, Any]) -> bool:
         pass
+    
+    @abstractmethod
+    async def create_survey_result(self, survey_data: Dict[str, Any]) -> str:
+        pass
+    
+    @abstractmethod
+    async def get_survey_results(self, user_id: str) -> List[Dict[str, Any]]:
+        pass

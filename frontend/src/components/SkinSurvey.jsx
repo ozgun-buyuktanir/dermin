@@ -1,28 +1,80 @@
-import React, { useState } from 'react'
-import { ChevronRight, ChevronLeft, Check, User, Calendar, Users, Droplet, AlertCircle, Sun, Zap, Utensils, Coffee, Cigarette, Heart, Stethoscope } from 'lucide-react'
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronRight, ChevronLeft, Check, User, Calendar, Users, Droplet, AlertCircle, Sun, Zap, Utensils, Coffee, Cigarette, Heart, Stethoscope, Brain, Wind, Leaf } from 'lucide-react';
+import logo from '../../dermin_logo.png';
+import dataService from '../services/dataService';
+
+const questionIcons = {
+    name: User,
+    age: Calendar,
+    gender: Users,
+    skin_type: Droplet,
+    facial_conditions: AlertCircle,
+    sun_sensitivity: Sun,
+    physical_sensitivity: Zap,
+    itching: AlertCircle,
+    allergies: Heart,
+    hair_type: Droplet,
+    hair_issues: AlertCircle,
+    diet_type: Utensils,
+    water_intake: Coffee,
+    exercise_frequency: Heart,
+    alcohol_consumption: Coffee,
+    smoking_habits: Cigarette,
+    chronic_illness: Stethoscope,
+    stress_level: Brain,
+    environment: Wind,
+    skincare_routine: Leaf,
+};
 
 const SkinSurvey = ({ onComplete, userName }) => {
-    const [currentStep, setCurrentStep] = useState(0)
-    const [answers, setAnswers] = useState({})
-    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [currentStep, setCurrentStep] = useState(0);
+    const [answers, setAnswers] = useState({ name: userName || '' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Check if survey is already completed
+    useEffect(() => {
+        const checkSurveyStatus = async () => {
+            try {
+                const status = await dataService.getSurveyStatus();
+                if (status.survey_completed) {
+                    // Survey already completed, redirect to dashboard
+                    onComplete(null, true); // true indicates already completed
+                    return;
+                }
+                
+                // Try to get existing survey data
+                const existingSurvey = await dataService.getMySurvey();
+                if (existingSurvey && existingSurvey.survey_data) {
+                    setAnswers(existingSurvey.survey_data);
+                }
+            } catch (error) {
+                console.error('Error checking survey status:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        checkSurveyStatus();
+    }, [onComplete]);
 
     const questions = [
+        // General Information
         {
             id: 'name',
-            title: 'What is your name? (optional)',
+            title: `Let's get to know you better. What's your full name?`,
             type: 'text',
-            required: false,
-            placeholder: 'Enter your name',
-            icon: User,
-            defaultValue: userName || ''
+            placeholder: 'İsim Soyisim',
+            required: true,
         },
         {
             id: 'age',
-            title: 'What is your age?',
+            title: 'How old are you?',
             type: 'number',
+            placeholder: 'Your age',
             required: true,
-            placeholder: 'Enter your age',
-            icon: Calendar,
             validation: { min: 1, max: 120 }
         },
         {
@@ -30,409 +82,337 @@ const SkinSurvey = ({ onComplete, userName }) => {
             title: 'What is your gender?',
             type: 'radio',
             required: true,
-            icon: Users,
-            options: ['Female', 'Male', 'Prefer not to say']
+            options: ['Female', 'Male', 'Non-binary', 'Prefer not to say']
         },
+        // Skin Details
         {
             id: 'skin_type',
-            title: 'What is your skin type?',
+            title: 'How would you describe your skin type?',
             type: 'radio',
             required: true,
-            icon: Droplet,
             options: ['Dry', 'Oily', 'Combination', 'Normal', 'Sensitive']
         },
         {
             id: 'facial_conditions',
-            title: 'Which facial conditions do you experience?',
+            title: 'Do you experience any of these on your face?',
+            subtitle: 'Select all that apply.',
             type: 'checkbox',
-            required: false,
-            icon: AlertCircle,
-            options: ['Acne', 'Blackheads', 'Redness', 'Flaking', 'Eczema', 'Other']
+            options: ['Acne', 'Blackheads', 'Whiteheads', 'Redness', 'Flaking/Peeling', 'Eczema', 'Rosacea', 'Dark Spots', 'None of the above']
         },
         {
             id: 'sun_sensitivity',
-            title: 'Is your skin sensitive to sun light?',
+            title: 'How does your skin react to the sun?',
             type: 'radio',
             required: true,
-            icon: Sun,
-            options: ['Yes', 'No', 'Not sure']
+            options: ['Burns easily', 'Tans easily', 'Burns then tans', 'Not sure']
         },
         {
             id: 'physical_sensitivity',
-            title: 'Is your skin sensitive to physical impact (e.g., scratching, rubbing, or minor pressure)?',
+            title: 'Is your skin sensitive to touch or pressure?',
             type: 'radio',
             required: true,
-            icon: Zap,
-            options: ['Yes', 'Mildly sensitive', 'No']
+            options: ['Very sensitive', 'Mildly sensitive', 'Not sensitive']
         },
+        // Lifestyle & Health
         {
-            id: 'itching',
-            title: 'Do you experience itching?',
+            id: 'stress_level',
+            title: 'What is your typical stress level?',
             type: 'radio',
             required: true,
-            icon: AlertCircle,
-            options: ['Yes', 'No', 'Occasionally']
-        },
-        {
-            id: 'allergies',
-            title: 'Do you have any allergies?',
-            type: 'radio',
-            required: true,
-            icon: Heart,
-            options: ['Yes', 'No', 'Not sure']
-        },
-        {
-            id: 'hair_type',
-            title: 'What is your hair type?',
-            type: 'radio',
-            required: true,
-            icon: Droplet,
-            options: ['Oily', 'Dry', 'Normal']
-        },
-        {
-            id: 'hair_issues',
-            title: 'Which hair or scalp issues do you experience?',
-            type: 'checkbox',
-            required: false,
-            icon: AlertCircle,
-            options: ['Dandruff', 'Itching', 'Hair loss', 'Redness', 'Eczema', 'Other']
-        },
-        {
-            id: 'diet_type',
-            title: 'What is your diet type?',
-            type: 'radio',
-            required: true,
-            icon: Utensils,
-            options: ['Regular', 'Vegetarian', 'Vegan', 'Ketogenic', 'Other']
+            options: ['Low', 'Moderate', 'High', 'Very High']
         },
         {
             id: 'water_intake',
-            title: 'How much water do you drink daily?',
+            title: 'How much water do you drink daily on average?',
             type: 'radio',
             required: true,
-            icon: Droplet,
             options: ['Less than 1 liter', '1–2 liters', '2–3 liters', 'More than 3 liters']
         },
         {
+            id: 'diet_type',
+            title: 'Which best describes your diet?',
+            type: 'radio',
+            required: true,
+            options: ['Balanced', 'High in processed foods', 'Vegetarian', 'Vegan', 'Low-carb', 'Other']
+        },
+        {
             id: 'exercise_frequency',
-            title: 'In a typical week, how many days do you exercise?',
+            title: 'How often do you exercise per week?',
             type: 'radio',
             required: true,
-            icon: Heart,
-            options: ['I don\'t regularly exercise', 'Once a week', '2 to 4 days a week', '5 to 7 days a week']
+            options: ['Rarely or never', '1-2 times a week', '3-4 times a week', '5+ times a week']
         },
         {
-            id: 'alcohol_consumption',
-            title: 'About how many alcoholic drinks do you have each week?',
-            type: 'number',
-            required: false,
-            placeholder: 'Enter number of drinks',
-            icon: Coffee,
-            validation: { min: 0, max: 100 }
-        },
-        {
-            id: 'smoking_habits',
-            title: 'About how many cigarettes do you smoke in a typical day?',
-            type: 'number',
-            required: false,
-            placeholder: 'Enter number of cigarettes',
-            icon: Cigarette,
-            validation: { min: 0, max: 100 }
-        },
-        {
-            id: 'chronic_illness',
-            title: 'Do you have any chronic illnesses?',
+            id: 'skincare_routine',
+            title: 'How would you describe your current skincare routine?',
             type: 'radio',
             required: true,
-            icon: Stethoscope,
-            options: ['Yes', 'No']
+            options: ['None', 'Basic (cleanse/moisturize)', 'Intermediate (serums, etc.)', 'Advanced (multiple steps)']
         },
         {
-            id: 'regular_medications',
-            title: 'Do you take any regular medications?',
+            id: 'allergies',
+            title: 'Do you have any known allergies (skin or otherwise)?',
             type: 'radio',
             required: true,
-            icon: Heart,
-            options: ['Yes', 'No']
+            options: ['Yes', 'No', 'Not sure']
         },
-        {
-            id: 'dermatologist_visit',
-            title: 'Have you visited a dermatologist before?',
-            type: 'radio',
-            required: true,
-            icon: Stethoscope,
-            options: ['Yes', 'No']
-        }
-    ]
+    ];
 
-    const currentQuestion = questions[currentStep]
-    const totalSteps = questions.length
-    const progress = ((currentStep + 1) / totalSteps) * 100
+    const totalSteps = questions.length;
+    const progress = ((currentStep + 1) / totalSteps) * 100;
 
-    const handleAnswerChange = (value) => {
-        setAnswers(prev => ({
-            ...prev,
-            [currentQuestion.id]: value
-        }))
-    }
-
-    const handleCheckboxChange = (option) => {
-        const currentAnswers = answers[currentQuestion.id] || []
-        const newAnswers = currentAnswers.includes(option)
-            ? currentAnswers.filter(item => item !== option)
-            : [...currentAnswers, option]
-        
-        setAnswers(prev => ({
-            ...prev,
-            [currentQuestion.id]: newAnswers
-        }))
-    }
-
-    const isCurrentStepValid = () => {
-        const answer = answers[currentQuestion.id]
-        
-        if (!currentQuestion.required) return true
-        
-        if (currentQuestion.type === 'checkbox') {
-            return answer && answer.length > 0
-        }
-        
-        return answer !== undefined && answer !== '' && answer !== null
-    }
+    const handleAnswer = (id, value) => {
+        setError('');
+        setAnswers(prev => ({ ...prev, [id]: value }));
+    };
 
     const handleNext = () => {
-        if (isCurrentStepValid() && currentStep < totalSteps - 1) {
-            setCurrentStep(prev => prev + 1)
+        const currentQuestion = questions[currentStep];
+        if (currentQuestion.required && !answers[currentQuestion.id]) {
+            setError('This field is required.');
+            return;
         }
-    }
+        if (currentStep < totalSteps - 1) {
+            setCurrentStep(currentStep + 1);
+        }
+    };
 
-    const handlePrevious = () => {
+    const handlePrev = () => {
         if (currentStep > 0) {
-            setCurrentStep(prev => prev - 1)
+            setCurrentStep(currentStep - 1);
+            setError('');
         }
-    }
+    };
 
-    const handleSubmit = async () => {
-        if (!isCurrentStepValid()) return
-
-        setIsSubmitting(true)
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const currentQuestion = questions[currentStep];
+        if (currentQuestion.required && !answers[currentQuestion.id]) {
+            setError('This field is required.');
+            return;
+        }
+        
+        setIsSubmitting(true);
+        setError('');
         
         try {
-            // Create survey response
-            const surveyResponse = {
-                ...answers,
-                timestamp: new Date().toISOString(),
-                version: '1.0'
+            // Prepare survey data
+            const surveyData = {
+                name: answers.name?.trim() || '',
+                age: parseInt(answers.age),
+                gender: answers.gender,
+                skin_type: answers.skin_type,
+                facial_conditions: answers.facial_conditions || [],
+                sun_sensitivity: answers.sun_sensitivity,
+                physical_sensitivity: answers.physical_sensitivity,
+                stress_level: answers.stress_level,
+                water_intake: answers.water_intake,
+                diet_type: answers.diet_type,
+                exercise_frequency: answers.exercise_frequency,
+                skincare_routine: answers.skincare_routine,
+                allergies: answers.allergies
+            };
+
+            // Validate name field
+            if (!surveyData.name) {
+                setError('Please enter your full name.');
+                return;
             }
 
-            // Save to backend
-            const token = localStorage.getItem('auth_token')
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/surveys`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(surveyResponse)
-            })
+            // Submit to backend
+            const result = await dataService.submitSurvey(surveyData);
+            
+            console.log('Survey submitted successfully:', result);
+            
+            // Remove local storage items since data is now in database
+            localStorage.removeItem('dermin_survey_completed');
+            localStorage.removeItem(`dermin_user_profile_${answers.email}`);
 
-            if (response.ok) {
-                // Mark survey as completed
-                localStorage.setItem('dermin_survey_completed', 'true')
-                onComplete(surveyResponse)
-            } else {
-                console.error('Failed to save survey')
-                // Still mark as completed locally for now
-                localStorage.setItem('dermin_survey_completed', 'true')
-                onComplete(surveyResponse)
-            }
+            onComplete(surveyData);
         } catch (error) {
-            console.error('Survey submission error:', error)
-            // Still mark as completed locally for now
-            localStorage.setItem('dermin_survey_completed', 'true')
-            onComplete(surveyResponse)
+            console.error('Failed to submit survey:', error);
+            setError(error.message || 'Failed to submit survey. Please try again.');
         } finally {
-            setIsSubmitting(false)
+            setIsSubmitting(false);
         }
-    }
+    };
 
-    const renderQuestionInput = () => {
-        const IconComponent = currentQuestion.icon
-        
-        switch (currentQuestion.type) {
+    const renderInput = (question) => {
+        const Icon = questionIcons[question.id] || AlertCircle;
+
+        switch (question.type) {
             case 'text':
-                return (
-                    <div className="relative">
-                        <IconComponent className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500" size={20} />
-                        <input
-                            type="text"
-                            placeholder={currentQuestion.placeholder}
-                            value={answers[currentQuestion.id] || currentQuestion.defaultValue || ''}
-                            onChange={(e) => handleAnswerChange(e.target.value)}
-                            className="w-full pl-12 pr-4 py-4 text-lg border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 transition-all duration-300 bg-white/80 backdrop-blur-sm"
-                        />
-                    </div>
-                )
-                
             case 'number':
                 return (
-                    <div className="relative">
-                        <IconComponent className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500" size={20} />
+                    <div className="relative w-full max-w-md">
+                        <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-[#90BE6D]/70" size={22} />
                         <input
-                            type="number"
-                            placeholder={currentQuestion.placeholder}
-                            value={answers[currentQuestion.id] || ''}
-                            onChange={(e) => handleAnswerChange(parseInt(e.target.value) || '')}
-                            min={currentQuestion.validation?.min}
-                            max={currentQuestion.validation?.max}
-                            className="w-full pl-12 pr-4 py-4 text-lg border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 transition-all duration-300 bg-white/80 backdrop-blur-sm"
+                            type={question.type}
+                            placeholder={question.placeholder}
+                            value={answers[question.id] || ''}
+                            onChange={(e) => handleAnswer(question.id, e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 bg-[#132D46]/50 border-2 border-[#778DA9]/50 rounded-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#90BE6D] focus:border-[#90BE6D] transition-all duration-300"
+                            min={question.validation?.min}
+                            max={question.validation?.max}
                         />
                     </div>
-                )
-                
+                );
             case 'radio':
                 return (
-                    <div className="space-y-3">
-                        {currentQuestion.options.map((option, index) => (
-                            <label
+                    <div className="grid grid-cols-2 gap-3 w-full max-w-lg">
+                        {question.options.map(option => (
+                            <button
                                 key={option}
-                                className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-300 hover:border-purple-300 hover:bg-purple-50/50 ${
-                                    answers[currentQuestion.id] === option
-                                        ? 'border-purple-500 bg-purple-50 shadow-sm'
-                                        : 'border-slate-200 bg-white/80'
-                                }`}
+                                onClick={() => handleAnswer(question.id, option)}
+                                className={`text-center px-3 py-2 text-sm rounded-lg border-2 transition-all duration-200 ${answers[question.id] === option ? 'bg-[#90BE6D] border-[#90BE6D] text-white shadow-md' : 'bg-[#132D46]/50 border-[#778DA9]/50 text-gray-200 hover:bg-[#778DA9]/30 hover:border-[#778DA9]'}`}
                             >
-                                <input
-                                    type="radio"
-                                    name={currentQuestion.id}
-                                    value={option}
-                                    checked={answers[currentQuestion.id] === option}
-                                    onChange={(e) => handleAnswerChange(e.target.value)}
-                                    className="w-5 h-5 text-purple-600 border-slate-300 focus:ring-purple-500"
-                                />
-                                <span className="ml-3 text-lg text-slate-700">{option}</span>
-                            </label>
+                                {option}
+                            </button>
                         ))}
                     </div>
-                )
-                
+                );
             case 'checkbox':
-                return (
-                    <div className="space-y-3">
-                        {currentQuestion.options.map((option, index) => {
-                            const isChecked = (answers[currentQuestion.id] || []).includes(option)
+                 return (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-2xl">
+                        {question.options.map(option => {
+                            const isSelected = answers[question.id]?.includes(option);
                             return (
-                                <label
+                                <button
                                     key={option}
-                                    className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-300 hover:border-purple-300 hover:bg-purple-50/50 ${
-                                        isChecked
-                                            ? 'border-purple-500 bg-purple-50 shadow-sm'
-                                            : 'border-slate-200 bg-white/80'
-                                    }`}
+                                    onClick={() => {
+                                        const currentSelection = answers[question.id] || [];
+                                        const newSelection = isSelected
+                                            ? currentSelection.filter(item => item !== option)
+                                            : [...currentSelection, option];
+                                        handleAnswer(question.id, newSelection);
+                                    }}
+                                    className={`text-center px-3 py-2 text-sm rounded-lg border-2 transition-all duration-200 ${isSelected ? 'bg-[#90BE6D] border-[#90BE6D] text-white shadow-md' : 'bg-[#132D46]/50 border-[#778DA9]/50 text-gray-200 hover:bg-[#778DA9]/30 hover:border-[#778DA9]'}`}
                                 >
-                                    <input
-                                        type="checkbox"
-                                        checked={isChecked}
-                                        onChange={() => handleCheckboxChange(option)}
-                                        className="w-5 h-5 text-purple-600 border-slate-300 rounded focus:ring-purple-500"
-                                    />
-                                    <span className="ml-3 text-lg text-slate-700">{option}</span>
-                                </label>
-                            )
+                                    {option}
+                                </button>
+                            );
                         })}
                     </div>
-                )
-                
+                );
             default:
-                return null
+                return null;
         }
+    };
+
+    const currentQuestion = questions[currentStep];
+    const Icon = questionIcons[currentQuestion.id] || AlertCircle;
+
+    // Show loading while checking survey status
+    if (isLoading) {
+        return (
+            <div className="min-h-screen w-full bg-gradient-to-br from-[#0D1B2A] via-[#132D46] to-[#0D1B2A] text-white flex flex-col items-center justify-center p-4">
+                <motion.div
+                    animate={{ opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                    className="w-8 h-8 bg-[#90BE6D] rounded-full mb-4"
+                />
+                <p className="text-gray-300">Checking survey status...</p>
+            </div>
+        );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-blue-50 flex items-center justify-center p-6">
-            <div className="w-full max-w-2xl">
-                {/* Progress bar */}
-                <div className="mb-8">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-600">
-                            Question {currentStep + 1} of {totalSteps}
-                        </span>
-                        <span className="text-sm font-medium text-slate-600">
-                            {Math.round(progress)}% Complete
-                        </span>
-                    </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2">
-                        <div 
-                            className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500 ease-out"
-                            style={{ width: `${progress}%` }}
-                        />
-                    </div>
+        <div className="min-h-screen w-full bg-gradient-to-br from-[#0D1B2A] via-[#132D46] to-[#0D1B2A] text-white flex flex-col items-center justify-center p-4 overflow-hidden">
+            <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="w-full max-w-4xl mx-auto"
+            >
+                <div className="text-center mb-8">
+                    <img src={logo} alt="Dermin Logo" className="w-32 h-32 mx-auto mb-4" />
+                    <h1 className="text-3xl font-bold text-gray-100">Personalized Skin Analysis</h1>
+                    <p className="text-lg text-[#90BE6D]">Just a few questions to tailor your experience.</p>
                 </div>
 
-                {/* Question card */}
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 mb-6">
-                    <div className="text-center mb-8">
-                        <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                            {React.createElement(currentQuestion.icon, {
-                                className: "w-8 h-8 text-white"
-                            })}
-                        </div>
-                        <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                            {currentQuestion.title}
-                        </h2>
-                        {currentQuestion.required && (
-                            <p className="text-sm text-slate-500">This question is required</p>
-                        )}
-                    </div>
-
-                    <div className="space-y-6">
-                        {renderQuestionInput()}
-                    </div>
+                {/* Progress Bar */}
+                <div className="w-full bg-[#132D46] rounded-full h-2.5 mb-8 border border-[#778DA9]/50">
+                    <motion.div
+                        className="bg-gradient-to-r from-[#778DA9] to-[#90BE6D] h-2.5 rounded-full"
+                        style={{ width: `${progress}%` }}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                    />
                 </div>
 
-                {/* Navigation buttons */}
-                <div className="flex justify-between">
-                    <button
-                        onClick={handlePrevious}
-                        disabled={currentStep === 0}
-                        className="flex items-center gap-2 px-6 py-3 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                    >
-                        <ChevronLeft size={20} />
-                        Previous
-                    </button>
-
-                    {currentStep === totalSteps - 1 ? (
-                        <button
-                            onClick={handleSubmit}
-                            disabled={!isCurrentStepValid() || isSubmitting}
-                            className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold"
+                <div className="bg-[#0D1B2A]/50 backdrop-blur-sm border border-[#778DA9]/20 rounded-2xl shadow-2xl p-6 min-h-[350px] flex flex-col justify-between">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={currentStep}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="w-full"
                         >
-                            {isSubmitting ? (
-                                <>
-                                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
-                                    Submitting...
-                                </>
+                            <div className="text-center mb-6">
+                                <div className="flex items-center justify-center gap-3 mb-3">
+                                    <Icon className="text-[#90BE6D]" size={28} />
+                                    <h2 className="text-xl font-semibold text-gray-100">{currentQuestion.title}</h2>
+                                </div>
+                                {currentQuestion.subtitle && <p className="text-sm text-gray-400">{currentQuestion.subtitle}</p>}
+                            </div>
+                            <div className="flex justify-center">
+                                {renderInput(currentQuestion)}
+                            </div>
+                        </motion.div>
+                    </AnimatePresence>
+
+                    <div className="mt-6">
+                        {error && <p className="text-red-400 text-center mb-4">{error}</p>}
+                        <div className="flex justify-between items-center">
+                            <button
+                                onClick={handlePrev}
+                                disabled={currentStep === 0}
+                                className="flex items-center gap-2 px-4 py-2 bg-[#132D46] border-2 border-[#778DA9]/80 rounded-full text-white font-medium hover:bg-[#778DA9]/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                            >
+                                <ChevronLeft size={18} />
+                                Back
+                            </button>
+
+                            {currentStep < totalSteps - 1 ? (
+                                <button
+                                    onClick={handleNext}
+                                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#778DA9] to-[#90BE6D] rounded-full text-white font-medium hover:opacity-90 transition-all duration-200 shadow-md"
+                                >
+                                    Next
+                                    <ChevronRight size={18} />
+                                </button>
                             ) : (
-                                <>
-                                    <Check size={20} />
-                                    Complete Survey
-                                </>
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={isSubmitting}
+                                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#90BE6D] to-[#A6D49F] rounded-full text-white font-medium hover:opacity-90 transition-all duration-200 shadow-md disabled:opacity-70"
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <motion.div
+                                                animate={{ opacity: [0.5, 1, 0.5] }}
+                                                transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+                                                className="w-4 h-4 bg-white rounded-full"
+                                            />
+                                            Submitting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Complete
+                                            <Check size={18} />
+                                        </>
+                                    )}
+                                </button>
                             )}
-                        </button>
-                    ) : (
-                        <button
-                            onClick={handleNext}
-                            disabled={!isCurrentStepValid()}
-                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                        >
-                            Next
-                            <ChevronRight size={20} />
-                        </button>
-                    )}
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </motion.div>
         </div>
-    )
-}
+    );
+};
 
-export default SkinSurvey
+export default SkinSurvey;
